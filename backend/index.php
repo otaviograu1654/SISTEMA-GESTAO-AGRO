@@ -4,6 +4,8 @@ $dbname = "sga_pecuaria";
 $user = "root";
 $pass = "";
 
+// tenta executar o bloco com try, caso dê errado o catch lá embaixo
+// tratamento de erro básico
 try {
     // conecta sem banco primeiro
     $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);
