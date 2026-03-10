@@ -1,5 +1,3 @@
-<?php
-?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -66,6 +64,12 @@
             color: #1f7a3f;
         }
 
+        .grid-panels {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
         .panel {
             background: white;
             border-radius: 14px;
@@ -125,6 +129,79 @@
             color: #555;
         }
 
+        form {
+            display: grid;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d8d8d8;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2fa35a;
+            box-shadow: 0 0 0 3px rgba(47,163,90,0.12);
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            background: #1f7a3f;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        button:hover {
+            background: #186232;
+        }
+
+        .mensagem {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .mensagem.sucesso {
+            background: #e7f6ec;
+            color: #1f7a3f;
+            display: block;
+        }
+
+        .mensagem.erro {
+            background: #fdeaea;
+            color: #b42318;
+            display: block;
+        }
+
+        .helper-text {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        @media (max-width: 900px) {
+            .grid-panels {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 700px) {
             .header h1 {
                 font-size: 22px;
@@ -165,31 +242,80 @@
             </div>
         </div>
 
-        <div class="panel">
-            <h2>Animais cadastrados</h2>
+        <div class="grid-panels">
+            <div class="panel">
+                <h2>Animais cadastrados</h2>
 
-            <div id="loading" class="loading">Carregando animais...</div>
+                <div id="loading" class="loading">Carregando animais...</div>
 
-            <div class="table-wrapper" id="tableWrapper" style="display: none;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Brinco</th>
-                            <th>Nome</th>
-                            <th>Raça</th>
-                            <th>Sexo</th>
-                            <th>Nascimento</th>
-                            <th>Lote</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaAnimais"></tbody>
-                </table>
+                <div class="table-wrapper" id="tableWrapper" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Brinco</th>
+                                <th>Nome</th>
+                                <th>Raça</th>
+                                <th>Sexo</th>
+                                <th>Nascimento</th>
+                                <th>Lote</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaAnimais"></tbody>
+                    </table>
+                </div>
+
+                <div id="emptyState" class="empty" style="display: none;">
+                    Nenhum animal cadastrado.
+                </div>
             </div>
 
-            <div id="emptyState" class="empty" style="display: none;">
-                Nenhum animal cadastrado.
+            <div class="panel">
+                <h2>Cadastrar animal</h2>
+
+                <form id="formAnimal">
+                    <div>
+                        <label for="brinco">Brinco</label>
+                        <input type="text" id="brinco" name="brinco" required>
+                    </div>
+
+                    <div>
+                        <label for="nome_apelido">Nome / Apelido</label>
+                        <input type="text" id="nome_apelido" name="nome_apelido" required>
+                    </div>
+
+                    <div>
+                        <label for="raca">Raça</label>
+                        <input type="text" id="raca" name="raca" required>
+                    </div>
+
+                    <div>
+                        <label for="sexo">Sexo</label>
+                        <select id="sexo" name="sexo" required>
+                            <option value="">Selecione</option>
+                            <option value="Macho">Macho</option>
+                            <option value="Fêmea">Fêmea</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="data_nascimento">Data de nascimento</label>
+                        <input type="date" id="data_nascimento" name="data_nascimento">
+                    </div>
+
+                    <div>
+                        <label for="lote">Lote</label>
+                        <input type="text" id="lote" name="lote">
+                    </div>
+
+                    <button type="submit">Cadastrar animal</button>
+                </form>
+
+                <div id="mensagem" class="mensagem"></div>
+                <div class="helper-text">
+                    Preencha os dados principais do animal e clique em cadastrar.
+                </div>
             </div>
         </div>
     </div>
@@ -208,11 +334,14 @@
                 loading.style.display = 'none';
 
                 if (!Array.isArray(animais) || animais.length === 0) {
+                    tableWrapper.style.display = 'none';
                     emptyState.style.display = 'block';
+                    tabelaAnimais.innerHTML = '';
                     atualizarCards([]);
                     return;
                 }
 
+                emptyState.style.display = 'none';
                 tableWrapper.style.display = 'block';
                 tabelaAnimais.innerHTML = '';
 
@@ -257,6 +386,52 @@
             document.getElementById('totalMachos').textContent = totalMachos;
             document.getElementById('totalFemeas').textContent = totalFemeas;
         }
+
+        function mostrarMensagem(texto, tipo) {
+            const mensagem = document.getElementById('mensagem');
+            mensagem.textContent = texto;
+            mensagem.className = `mensagem ${tipo}`;
+        }
+
+        document.getElementById('formAnimal').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const dados = {
+                brinco: document.getElementById('brinco').value.trim(),
+                nome_apelido: document.getElementById('nome_apelido').value.trim(),
+                raca: document.getElementById('raca').value.trim(),
+                sexo: document.getElementById('sexo').value,
+                data_nascimento: document.getElementById('data_nascimento').value,
+                lote: document.getElementById('lote').value.trim()
+            };
+
+            try {
+                const resposta = await fetch('animais.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                const resultado = await resposta.json();
+
+                if (!resposta.ok) {
+                    mostrarMensagem(resultado.erro || 'Erro ao cadastrar animal.', 'erro');
+                    return;
+                }
+
+                mostrarMensagem(resultado.mensagem || 'Animal cadastrado com sucesso.', 'sucesso');
+                document.getElementById('formAnimal').reset();
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('loading').textContent = 'Carregando animais...';
+                await carregarAnimais();
+
+            } catch (erro) {
+                mostrarMensagem('Erro de comunicação com o servidor.', 'erro');
+                console.error('Erro ao cadastrar:', erro);
+            }
+        });
 
         carregarAnimais();
     </script>
