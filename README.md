@@ -20,10 +20,10 @@ O projeto propõe um sistema com duas frentes:
 ## Funcionalidades principais
 -
                     ## Cadastro e identificação ##
-- Cadastro de individual de animais
+- Cadastro de individual de animais 
 - Historico familiar
 - Listagem e consulta de animais
-- Registro de pesagens
+- 
 -
                     ## Saúde e ciclo de vida ##
 - Controle de vacinação
@@ -35,7 +35,7 @@ O projeto propõe um sistema com duas frentes:
 - Registro de animal no ciclo de cio
 - Registro de animal prenho e demais etapas ate a concepção 
 - Registro de animal em tratamento(deu um antibiotico e portanto em um certo periodo não posso abater o animal nem colocar o leite dele no tanque)
-- Dashboard com resumo do rebanho
+- Dashboard com resumo do rebanho(quantos animais no lote A,B...) quantoa animais estao no cio, em gestação...
 -
                     ## Gestão de estoque e Insumos ##
 - Gestão de estoque (qtd atual, qtd que preciso para a semana/mes, estoque de remedios atual em estoque e quais preciso comprar)
