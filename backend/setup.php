@@ -1,1 +1,97 @@
+<?php
+$host = "localhost";
+$user = "root";
+$pass = "";
+$dbname = "sga_pecuaria";
 
+function executarArquivoSql(PDO $pdo, string $caminho): void
+{
+    if (!file_exists($caminho)) {
+        throw new Exception("Arquivo SQL não encontrado: " . $caminho);
+    }
+
+    $sql = file_get_contents($caminho);
+
+    if ($sql === false) {
+        throw new Exception("Não foi possível ler o arquivo: " . $caminho);
+    }
+
+    $linhas = explode("\n", $sql);
+    $comando = "";
+    $comandos = [];
+
+    foreach ($linhas as $linha) {
+        $linha = trim($linha);
+
+        if ($linha === "" || str_starts_with($linha, "--")) {
+            continue;
+        }
+
+        $comando .= " " . $linha;
+
+        if (str_ends_with($linha, ";")) {
+            $comandos[] = trim($comando);
+            $comando = "";
+        }
+    }
+
+    if (trim($comando) !== "") {
+        $comandos[] = trim($comando);
+    }
+
+    foreach ($comandos as $sqlUnitario) {
+        $pdo->exec($sqlUnitario);
+    }
+}
+
+try {
+    $pdo = new PDO("mysql:host=$host;charset=utf8mb4", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $schemaPath = __DIR__ . '/../database/schema.sql';
+    $seedPath = __DIR__ . '/../database/seed.sql';
+
+    executarArquivoSql($pdo, $schemaPath);
+
+    $pdoDb = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
+    $pdoDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    if (file_exists($seedPath) && trim(file_get_contents($seedPath)) !== '') {
+        executarArquivoSql($pdoDb, $seedPath);
+        $mensagemSeed = "seed.sql executado.";
+    } else {
+        $count = $pdoDb->query("SELECT COUNT(*) FROM animais")->fetchColumn();
+
+        if ((int)$count === 0) {
+            $stmt = $pdoDb->prepare("
+                INSERT INTO animais (brinco, nome_apelido, raca, sexo, data_nascimento, lote)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+
+            $dadosFake = [
+                ["4052", "Campeão", "Nelore", "Macho", "2023-05-15", "Lote Engorda A"],
+                ["4053", "Estrela", "Angus", "Fêmea", "2023-06-10", "Lote Matriz B"],
+                ["4054", "Trovão", "Girolando", "Macho", "2022-11-02", "Lote Recria C"],
+            ];
+
+            foreach ($dadosFake as $animal) {
+                $stmt->execute($animal);
+            }
+
+            $mensagemSeed = "Dados fake inseridos automaticamente.";
+        } else {
+            $mensagemSeed = "Banco já tinha animais; nenhum dado fake foi inserido.";
+        }
+    }
+
+    echo "<h1>Setup concluído com sucesso</h1>";
+    echo "<p>Banco <strong>{$dbname}</strong> criado/verificado.</p>";
+    echo "<p>schema.sql executado.</p>";
+    echo "<p>{$mensagemSeed}</p>";
+    echo "<p><a href='index.php'>Ir para o sistema</a></p>";
+
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo "<h1>Erro no setup</h1>";
+    echo "<pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+}
