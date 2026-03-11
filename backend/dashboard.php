@@ -444,15 +444,20 @@
                     const tr = document.createElement('tr');
 
                     tr.innerHTML = `
-                        <td>${animal.id ?? ''}</td>
-                        <td>${animal.brinco ?? ''}</td>
-                        <td>${animal.nome_apelido ?? ''}</td>
-                        <td>${animal.raca ?? ''}</td>
-                        <td>${animal.sexo ?? ''}</td>
-                        <td>${animal.data_nascimento ?? ''}</td>
-                        <td>${animal.lote ?? ''}</td>
-                        <td><span class="status">Ativo</span></td>
-                    `;
+    <td>${animal.id ?? ''}</td>
+    <td>${animal.brinco ?? ''}</td>
+    <td>${animal.nome_apelido ?? ''}</td>
+    <td>${animal.raca ?? ''}</td>
+    <td>${animal.sexo ?? ''}</td>
+    <td>${animal.data_nascimento ?? ''}</td>
+    <td>${animal.lote ?? ''}</td>
+    <td><span class="status">Ativo</span></td>
+    <td>
+        <a href="animal.php?id=${animal.id}" style="color:#1f7a3f; font-weight:bold; text-decoration:none;">
+            Ver detalhes
+        </a>
+    </td>
+`;
 
                     tabelaAnimais.appendChild(tr);
                 });
