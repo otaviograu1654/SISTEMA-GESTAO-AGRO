@@ -43,7 +43,44 @@ function executarArquivoSql(PDO $pdo, string $caminho): void
         $pdo->exec($sqlUnitario);
     }
 }
+function colunaExiste(PDO $pdo, string $tabela, string $coluna, string $banco): bool
+{
+    $sql = "
+        SELECT COUNT(*)
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = :banco
+          AND TABLE_NAME = :tabela
+          AND COLUMN_NAME = :coluna
+    ";
 
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':banco' => $banco,
+        ':tabela' => $tabela,
+        ':coluna' => $coluna,
+    ]);
+
+    return (int) $stmt->fetchColumn() > 0;
+}
+
+function garantirEstruturaAnimais(PDO $pdo, string $banco): void
+{
+    if (!colunaExiste($pdo, 'animais', 'mae_id', $banco)) {
+        $pdo->exec("ALTER TABLE animais ADD COLUMN mae_id INT NULL");
+    }
+
+    if (!colunaExiste($pdo, 'animais', 'pai_id', $banco)) {
+        $pdo->exec("ALTER TABLE animais ADD COLUMN pai_id INT NULL");
+    }
+
+    if (!colunaExiste($pdo, 'animais', 'data_ultimo_cio', $banco)) {
+        $pdo->exec("ALTER TABLE animais ADD COLUMN data_ultimo_cio DATE NULL");
+    }
+
+    if (!colunaExiste($pdo, 'animais', 'prenha', $banco)) {
+        $pdo->exec("ALTER TABLE animais ADD COLUMN prenha TINYINT(1) DEFAULT 0");
+    }
+}
 try {
     $pdo = new PDO("mysql:host=$host;charset=utf8mb4", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
