@@ -442,6 +442,7 @@
                 });
 
                 atualizarCards(animais);
+                popularSelectAnimais(animais);
 
             } catch (erro) {
                 loading.textContent = 'Erro ao carregar animais.';
