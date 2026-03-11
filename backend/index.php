@@ -471,7 +471,70 @@
             mensagem.textContent = texto;
             mensagem.className = `mensagem ${tipo}`;
         }
+        function mostrarMensagemPesagem(texto, tipo) {
+        const mensagem = document.getElementById('mensagemPesagem');
+    mensagem.textContent = texto;
+    mensagem.className = `mensagem ${tipo}`;
+}
 
+function popularSelectAnimais(animais) {
+    const select = document.getElementById('animal_id');
+
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Selecione um animal</option>';
+
+    animais.forEach(animal => {
+        const option = document.createElement('option');
+        option.value = animal.id;
+        option.textContent = `${animal.nome_apelido} - Brinco ${animal.brinco}`;
+        select.appendChild(option);
+    });
+}
+
+async function carregarPesagens() {
+    const loading = document.getElementById('loadingPesagens');
+    const tableWrapper = document.getElementById('tablePesagensWrapper');
+    const emptyState = document.getElementById('emptyPesagens');
+    const tabelaPesagens = document.getElementById('tabelaPesagens');
+
+    try {
+        const resposta = await fetch('pesagens.php');
+        const pesagens = await resposta.json();
+
+        loading.style.display = 'none';
+
+        if (!Array.isArray(pesagens) || pesagens.length === 0) {
+            tableWrapper.style.display = 'none';
+            emptyState.style.display = 'block';
+            tabelaPesagens.innerHTML = '';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        tableWrapper.style.display = 'block';
+        tabelaPesagens.innerHTML = '';
+
+        pesagens.forEach(pesagem => {
+            const tr = document.createElement('tr');
+
+            tr.innerHTML = `
+                <td>${pesagem.id ?? ''}</td>
+                <td>${pesagem.nome_apelido ?? ''}</td>
+                <td>${pesagem.brinco ?? ''}</td>
+                <td>${pesagem.data_pesagem ?? ''}</td>
+                <td>${pesagem.peso_kg ?? ''}</td>
+                <td>${pesagem.observacao ?? ''}</td>
+            `;
+
+            tabelaPesagens.appendChild(tr);
+        });
+
+    } catch (erro) {
+        loading.textContent = 'Erro ao carregar pesagens.';
+        console.error('Erro ao carregar pesagens:', erro);
+    }
+}
         document.getElementById('formAnimal').addEventListener('submit', async function(event) {
             event.preventDefault();
 
