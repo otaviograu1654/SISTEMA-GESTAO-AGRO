@@ -320,68 +320,7 @@
             </div>
         </div>
     </div>
-<div class="grid-panels section-spacing">
-    <div class="panel">
-        <h2>Últimas pesagens</h2>
-
-        <div id="loadingPesagens" class="loading">Carregando pesagens...</div>
-
-        <div class="table-wrapper" id="tablePesagensWrapper" style="display: none;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Animal</th>
-                        <th>Brinco</th>
-                        <th>Data</th>
-                        <th>Peso (kg)</th>
-                        <th>Observação</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelaPesagens"></tbody>
-            </table>
-        </div>
-
-        <div id="emptyPesagens" class="empty" style="display: none;">
-            Nenhuma pesagem cadastrada.
-        </div>
-    </div>
-
-    <div class="panel">
-        <h2>Registrar pesagem</h2>
-
-        <form id="formPesagem">
-            <div>
-                <label for="animal_id">Animal</label>
-                <select id="animal_id" name="animal_id" required>
-                    <option value="">Selecione um animal</option>
-                </select>
-            </div>
-
-            <div>
-                <label for="data_pesagem">Data da pesagem</label>
-                <input type="date" id="data_pesagem" name="data_pesagem" required>
-            </div>
-
-            <div>
-                <label for="peso_kg">Peso (kg)</label>
-                <input type="number" step="0.01" id="peso_kg" name="peso_kg" required>
-            </div>
-
-            <div>
-                <label for="observacao">Observação</label>
-                <input type="text" id="observacao" name="observacao">
-            </div>
-
-            <button type="submit">Cadastrar pesagem</button>
-        </form>
-
-        <div id="mensagemPesagem" class="mensagem"></div>
-        <div class="helper-text">
-            Registre o peso do animal selecionado.
-        </div>
-    </div>
-</div>
+    
     <script>
         async function carregarAnimais() {
             const loading = document.getElementById('loading');
