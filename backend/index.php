@@ -434,43 +434,7 @@
                 console.error('Erro ao cadastrar:', erro);
             }
         });
-document.getElementById('formPesagem').addEventListener('submit', async function(event) {
-    event.preventDefault();
 
-    const dados = {
-        animal_id: document.getElementById('animal_id').value,
-        data_pesagem: document.getElementById('data_pesagem').value,
-        peso_kg: document.getElementById('peso_kg').value,
-        observacao: document.getElementById('observacao').value.trim()
-    };
-
-    try {
-        const resposta = await fetch('pesagens.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(dados)
-        });
-
-        const resultado = await resposta.json();
-
-        if (!resposta.ok) {
-            mostrarMensagemPesagem(resultado.erro || 'Erro ao cadastrar pesagem.', 'erro');
-            return;
-        }
-
-        mostrarMensagemPesagem(resultado.mensagem || 'Pesagem cadastrada com sucesso.', 'sucesso');
-        document.getElementById('formPesagem').reset();
-        document.getElementById('loadingPesagens').style.display = 'block';
-        document.getElementById('loadingPesagens').textContent = 'Carregando pesagens...';
-        await carregarPesagens();
-
-    } catch (erro) {
-        mostrarMensagemPesagem('Erro de comunicação com o servidor.', 'erro');
-        console.error('Erro ao cadastrar pesagem:', erro);
-    }
-});
         carregarAnimais();
         
     </script>
