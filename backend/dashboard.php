@@ -294,7 +294,7 @@
                 <div class="menu-title">Principal</div>
                 <a href="#dashboard" class="active">Dashboard</a>
                 <a href="#animais">Animais</a>
-                <a href="#cadastro">Cadastrar animal</a>
+                <a href="cadastro_animal.php">Cadastrar animal</a>
 
                 <div class="menu-title">Módulos</div>
                 <a href="#" class="disabled">Pesagens</a>
