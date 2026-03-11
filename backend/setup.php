@@ -93,6 +93,8 @@ try {
     $pdoDb = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
     $pdoDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+    garantirEstruturaAnimais($pdoDb, $dbname);
+
     if (file_exists($seedPath) && trim(file_get_contents($seedPath)) !== '') {
         executarArquivoSql($pdoDb, $seedPath);
         $mensagemSeed = "seed.sql executado.";
