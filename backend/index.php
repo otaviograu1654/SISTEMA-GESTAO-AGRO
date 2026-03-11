@@ -405,7 +405,7 @@
             const tableWrapper = document.getElementById('tableWrapper');
             const emptyState = document.getElementById('emptyState');
             const tabelaAnimais = document.getElementById('tabelaAnimais');
-            popularSelectAnimais(animais);
+            
             try {
                 const resposta = await fetch('animais.php');
                 const animais = await resposta.json();
