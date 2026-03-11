@@ -1,0 +1,208 @@
+:root {
+
+    --verde-escuro: #2d3e2d;
+    --verde-menu: #4a634a;
+    --verde-hover: #6b8e6b;
+
+    --fundo: #f4f7f6;
+    --branco: #ffffff;
+
+    --sombra: 0px 4px 10px rgba(0, 0, 0, 0.08);
+
+}
+
+* {
+
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+}
+
+body {
+
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--fundo);
+
+}
+
+/* ESTRUTURA */
+
+.estrutura-sistema {
+
+    display: flex;
+    min-height: 100vh;
+
+}
+
+/* MENU LATERAL */
+
+.menu-lateral {
+
+    width: 250px;
+    background: var(--verde-menu);
+    color: white;
+    display: flex;
+    flex-direction: column;
+
+}
+
+/* LOGO */
+
+.logo-sistema {
+
+    padding: 20px;
+    text-align: center;
+    background: var(--verde-escuro);
+
+}
+
+.logo-sistema img {
+
+    width: 80px;
+
+}
+
+/* MENU */
+
+.lista-menu {
+
+    list-style: none;
+
+}
+
+.lista-menu li a {
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 15px 20px;
+
+    color: white;
+    text-decoration: none;
+
+    transition: 0.25s;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+
+.lista-menu li a:hover {
+
+    background: var(--verde-hover);
+    padding-left: 25px;
+
+}
+
+/* SETA */
+
+.seta {
+
+    margin-left: auto;
+    transition: 0.3s;
+
+}
+
+.rotacionar {
+
+    transform: rotate(180deg);
+
+}
+
+/* SUBMENU */
+
+.submenu {
+
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+
+    background: var(--verde-escuro);
+    list-style: none;
+
+}
+
+.submenu li a {
+
+    font-size: 0.9rem;
+    padding-left: 45px;
+
+}
+
+.submenu.submenu-aberto {
+
+    max-height: 500px;
+
+}
+
+/* AREA PRINCIPAL */
+
+.area-principal {
+
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+}
+
+/* CABEÇALHO */
+
+.cabecalho-sistema {
+
+    height: 70px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 30px;
+
+    background: white;
+
+    box-shadow: var(--sombra);
+
+}
+
+/* TITULO */
+
+.titulo-sistema h2 {
+
+    font-size: 20px;
+
+}
+
+.titulo-sistema span {
+
+    font-size: 13px;
+    color: #777;
+
+}
+
+/* PERFIL */
+
+.perfil-usuario {
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+
+}
+
+.perfil-usuario img {
+
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+
+}
+
+/* CONTEUDO */
+
+.conteudo-principal {
+
+    padding: 30px;
+
+}

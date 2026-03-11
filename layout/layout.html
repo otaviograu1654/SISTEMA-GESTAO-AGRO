@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SGA - Fazenda Paraíso</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+
+<body>
+
+    <div class="estrutura-sistema">
+
+        <!-- MENU LATERAL -->
+        <nav class="menu-lateral">
+
+            <div class="logo-sistema">
+                <img src="logo.png" alt="Logo do Sistema">
+            </div>
+
+            <ul class="lista-menu">
+
+                <li>
+                    <a href="#">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+
+                <li class="item-menu">
+
+                    <a href="javascript:void(0)" class="botao-dropdown">
+
+                        <i class="fa-solid fa-address-book"></i>
+                        <span>Cadastros</span>
+
+                        <i class="fa-solid fa-chevron-down seta"></i>
+
+                    </a>
+
+                    <ul class="submenu">
+
+                        <li><a href="/animais">Animais</a></li>
+                        <li><a href="#">Produtos</a></li>
+                        <li><a href="#">Tipo de Animal</a></li>
+                        <li><a href="#">Raça</a></li>
+                        <li><a href="#">Usuários</a></li>
+                        <li><a href="#">Plano de Contas</a></li>
+                        <li><a href="#">Pastos</a></li>
+                        <li><a href="#">Lotes</a></li>
+                        <li><a href="#">Clientes / Fornecedores</a></li>
+                        <li><a href="#">Vacinas</a></li>
+
+                    </ul>
+
+                </li>
+
+
+                <li class="item-menu">
+
+                    <a href="javascript:void(0)" class="botao-dropdown">
+
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                        <span>Movimentação</span>
+
+                        <i class="fa-solid fa-chevron-down seta"></i>
+
+                    </a>
+
+                    <ul class="submenu">
+
+                        <li><a href="#">Compras</a></li>
+                        <li><a href="#">Produção</a></li>
+                        <li><a href="#">Vendas</a></li>
+                        <li><a href="#">Lançamentos à Vista</a></li>
+                        <li><a href="#">Reprodução</a></li>
+                        <li><a href="#">Alimentação</a></li>
+
+                    </ul>
+
+                </li>
+
+
+                <li class="item-menu">
+
+                    <a href="javascript:void(0)" class="botao-dropdown">
+
+                        <i class="fa-solid fa-dollar-sign"></i>
+                        <span>Financeiro</span>
+
+                        <i class="fa-solid fa-chevron-down seta"></i>
+
+                    </a>
+
+                    <ul class="submenu">
+
+                        <li><a href="#">Contas a Pagar</a></li>
+                        <li><a href="#">Contas a Receber</a></li>
+                        <li><a href="#">Fluxo de Caixa</a></li>
+
+                    </ul>
+
+                </li>
+
+
+                <li class="item-menu">
+
+                    <a href="javascript:void(0)" class="botao-dropdown">
+
+                        <i class="fa-solid fa-file-contract"></i>
+                        <span>Relatórios</span>
+
+                        <i class="fa-solid fa-chevron-down seta"></i>
+
+                    </a>
+
+                    <ul class="submenu">
+
+                        <li><a href="#">Relatório de Animais</a></li>
+                        <li><a href="#">Produção</a></li>
+                        <li><a href="#">Estoque</a></li>
+                        <li><a href="#">Pesagem</a></li>
+                        <li><a href="#">DRE</a></li>
+
+                    </ul>
+
+                </li>
+
+
+                <li>
+
+                    <a href="#">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Configurações</span>
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </nav>
+
+
+        <!-- AREA PRINCIPAL -->
+        <div class="area-principal">
+
+
+            <!-- CABEÇALHO -->
+
+            <header class="cabecalho-sistema">
+
+                <div class="titulo-sistema">
+
+                    <h2>SGA Pecuária</h2>
+                    <span>Fazenda Paraíso</span>
+
+                </div>
+
+                <div class="perfil-usuario">
+
+                    <img src="https://via.placeholder.com/40" alt="Usuário">
+
+                    <span>
+                        ADMIN
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </span>
+
+                </div>
+
+            </header>
+
+
+            <!-- CONTEÚDO -->
+
+            <main class="conteudo-principal">
+
+                <div th:replace="~{:: content}"></div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
