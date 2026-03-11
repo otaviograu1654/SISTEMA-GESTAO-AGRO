@@ -364,52 +364,27 @@
                         </div>
                     </div>
 
-                    <div class="panel" id="cadastro">
-                        <h2>Cadastrar animal</h2>
+                   <div class="panel" id="cadastro">
+    <h2>Ações rápidas</h2>
 
-                        <form id="formAnimal">
-                            <div>
-                                <label for="brinco">Brinco</label>
-                                <input type="text" id="brinco" name="brinco" required>
-                            </div>
+    <p style="color:#666; font-size:14px; margin-top:0;">
+        Use os atalhos abaixo para navegar pelo sistema.
+    </p>
 
-                            <div>
-                                <label for="nome_apelido">Nome / Apelido</label>
-                                <input type="text" id="nome_apelido" name="nome_apelido" required>
-                            </div>
+    <div style="display:grid; gap:12px;">
+        <a href="cadastro_animal.php" style="display:block; padding:12px 14px; background:#1f7a3f; color:white; text-decoration:none; border-radius:10px; font-weight:bold;">
+            + Novo animal
+        </a>
 
-                            <div>
-                                <label for="raca">Raça</label>
-                                <input type="text" id="raca" name="raca" required>
-                            </div>
+        <a href="animal.php?id=1" style="display:block; padding:12px 14px; background:#eef2f7; color:#333; text-decoration:none; border-radius:10px; font-weight:bold;">
+            Ver animal exemplo
+        </a>
+    </div>
 
-                            <div>
-                                <label for="sexo">Sexo</label>
-                                <select id="sexo" name="sexo" required>
-                                    <option value="">Selecione</option>
-                                    <option value="Macho">Macho</option>
-                                    <option value="Fêmea">Fêmea</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="data_nascimento">Data de nascimento</label>
-                                <input type="date" id="data_nascimento" name="data_nascimento">
-                            </div>
-
-                            <div>
-                                <label for="lote">Lote</label>
-                                <input type="text" id="lote" name="lote">
-                            </div>
-
-                            <button type="submit">Cadastrar animal</button>
-                        </form>
-
-                        <div id="mensagem" class="mensagem"></div>
-                        <div class="helper-text">
-                            Preencha os dados principais do animal e clique em cadastrar.
-                        </div>
-                    </div>
+    <div class="helper-text">
+        O cadastro completo agora fica em uma página separada.
+    </div>
+</div>
                 </div>
             </div>
         </main>
