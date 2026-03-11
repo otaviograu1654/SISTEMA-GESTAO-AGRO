@@ -136,3 +136,203 @@ $paiTexto = $animal['nome_pai']
             background: #1f7a3f;
             color: white;
         }
+                .btn-secondary {
+            background: white;
+            color: #1f7a3f;
+            border: 1px solid #d8e3db;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 20px;
+            color: #1f7a3f;
+        }
+
+        .info-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .info-item {
+            border-bottom: 1px solid #ececec;
+            padding-bottom: 10px;
+        }
+
+        .label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #222;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #e7f6ec;
+            color: #1f7a3f;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-nao {
+            background: #fdeaea;
+            color: #b42318;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Detalhes do Animal</h1>
+        <p>Informações completas do cadastro</p>
+    </div>
+
+    <div class="container">
+        <div class="top-actions">
+            <a href="dashboard.php" class="btn btn-secondary">← Voltar</a>
+            <a href="editar_animal.php?id=<?= $animal['id'] ?>" class="btn btn-primary">Editar animal</a>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Identificação</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="label">Brinco</span>
+                        <span class="value"><?= textoSeguro($animal['brinco']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Nome / Apelido</span>
+                        <span class="value"><?= textoSeguro($animal['nome_apelido']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Raça</span>
+                        <span class="value"><?= textoSeguro($animal['raca']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Sexo</span>
+                        <span class="value"><?= textoSeguro($animal['sexo']) ?></span>
+                    </div>
+                                        <div class="info-item">
+                        <span class="label">Nascimento</span>
+                        <span class="value"><?= textoOuPadrao($animal['data_nascimento']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Lote</span>
+                        <span class="value"><?= textoOuPadrao($animal['lote']) ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Genealogia</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="label">Mãe</span>
+                        <span class="value"><?= $maeTexto ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Pai</span>
+                        <span class="value"><?= $paiTexto ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Número de crias</span>
+                        <span class="value"><?= $totalCrias ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Reprodução</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="label">Último cio</span>
+                        <span class="value"><?= textoOuPadrao($animal['data_ultimo_cio']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Prenha</span>
+                        <span class="value">
+                            <span class="badge <?= $prenhaTexto === 'Sim' ? '' : 'badge-nao' ?>">
+                                <?= $prenhaTexto ?>
+                            </span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+                                <div class="info-item">
+                        <span class="label">Nascimento</span>
+                        <span class="value"><?= textoOuPadrao($animal['data_nascimento']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Lote</span>
+                        <span class="value"><?= textoOuPadrao($animal['lote']) ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Genealogia</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="label">Mãe</span>
+                        <span class="value"><?= $maeTexto ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Pai</span>
+                        <span class="value"><?= $paiTexto ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Número de crias</span>
+                        <span class="value"><?= $totalCrias ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Reprodução</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="label">Último cio</span>
+                        <span class="value"><?= textoOuPadrao($animal['data_ultimo_cio']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Prenha</span>
+                        <span class="value">
+                            <span class="badge <?= $prenhaTexto === 'Sim' ? '' : 'badge-nao' ?>">
+                                <?= $prenhaTexto ?>
+                            </span>
+                        </span>
+                    </div>
+                </div>
+            </div>
