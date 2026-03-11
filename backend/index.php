@@ -211,6 +211,24 @@
                 font-size: 24px;
             }
         }
+        .section-spacing {
+    margin-top: 24px;
+}
+
+.small-text {
+    font-size: 13px;
+    color: #666;
+}
+
+.badge-blue {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #e8f1ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: bold;
+}
     </style>
 </head>
 <body>
