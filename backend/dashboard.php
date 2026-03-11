@@ -342,14 +342,14 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Brinco</th>
-                                        <th>Nome</th>
-                                        <th>Raça</th>
-                                        <th>Sexo</th>
-                                        <th>Nascimento</th>
-                                        <th>Lote</th>
-                                        <th>Status</th>
+                                       <th>ID</th>
+    <th>Brinco</th>
+    <th>Nome</th>
+    <th>Raça</th>
+    <th>Sexo</th>
+    <th>Nascimento</th>
+    <th>Lote</th>
+    <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabelaAnimais"></tbody>
