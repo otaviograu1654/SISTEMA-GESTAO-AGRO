@@ -127,7 +127,7 @@ try {
     echo "<p>Banco <strong>{$dbname}</strong> criado/verificado.</p>";
     echo "<p>schema.sql executado.</p>";
     echo "<p>{$mensagemSeed}</p>";
-    echo "<p><a href='index.php'>Ir para o sistema</a></p>";
+    echo "<p><a href='dashboard.php'>Ir para o sistema</a></p>";
 
 } catch (Throwable $e) {
     http_response_code(500);
