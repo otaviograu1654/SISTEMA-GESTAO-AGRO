@@ -472,7 +472,7 @@ document.getElementById('formPesagem').addEventListener('submit', async function
     }
 });
         carregarAnimais();
-        carregarPesagens();
+        
     </script>
 </body>
 </html>
