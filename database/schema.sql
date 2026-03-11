@@ -12,7 +12,13 @@ CREATE TABLE IF NOT EXISTS animais (
     sexo VARCHAR(20) NOT NULL,
     data_nascimento DATE,
     lote VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    mae_id INT NULL,
+    pai_id INT NULL,
+    data_ultimo_cio DATE NULL,
+    prenha TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (mae_id) REFERENCES animais(id),
+    FOREIGN KEY (pai_id) REFERENCES animais(id)
 );
 
 CREATE TABLE IF NOT EXISTS pesagens (
