@@ -462,12 +462,6 @@
             document.getElementById('totalFemeas').textContent = totalFemeas;
         }
 
-        function mostrarMensagem(texto, tipo) {
-            const mensagem = document.getElementById('mensagem');
-            mensagem.textContent = texto;
-            mensagem.className = `mensagem ${tipo}`;
-        }
-
         carregarAnimais();
     </script>
 </body>
