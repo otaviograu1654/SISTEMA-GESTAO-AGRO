@@ -468,25 +468,6 @@
             mensagem.className = `mensagem ${tipo}`;
         }
 
-                const resultado = await resposta.json();
-
-                if (!resposta.ok) {
-                    mostrarMensagem(resultado.erro || 'Erro ao cadastrar animal.', 'erro');
-                    return;
-                }
-
-                mostrarMensagem(resultado.mensagem || 'Animal cadastrado com sucesso.', 'sucesso');
-                document.getElementById('formAnimal').reset();
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('loading').textContent = 'Carregando animais...';
-                await carregarAnimais();
-
-            } catch (erro) {
-                mostrarMensagem('Erro de comunicação com o servidor.', 'erro');
-                console.error('Erro ao cadastrar:', erro);
-            }
-        });
-
         carregarAnimais();
     </script>
 </body>
