@@ -486,8 +486,70 @@
     document.getElementById('totalMachos').textContent = totalMachos;
     document.getElementById('totalFemeas').textContent = totalFemeas;
 }
-        
+                function renderizarAnimais(animais) {
+    const loading = document.getElementById('loading');
+    const tableWrapper = document.getElementById('tableWrapper');
+    const emptyState = document.getElementById('emptyState');
+    const tabelaAnimais = document.getElementById('tabelaAnimais');
 
+    loading.style.display = 'none';
+
+    if (!Array.isArray(animais) || animais.length === 0) {
+        tableWrapper.style.display = 'none';
+        emptyState.style.display = 'block';
+        tabelaAnimais.innerHTML = '';
+        atualizarCards([]);
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    tableWrapper.style.display = 'block';
+    tabelaAnimais.innerHTML = '';
+
+    animais.forEach(animal => {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+            <td>${animal.id ?? ''}</td>
+            <td>${animal.brinco ?? ''}</td>
+            <td>${animal.nome_apelido ?? ''}</td>
+            <td>${animal.raca ?? ''}</td>
+            <td>${animal.sexo ?? ''}</td>
+            <td>${animal.data_nascimento ?? ''}</td>
+            <td>${animal.lote ?? ''}</td>
+            <td><span class="status">Ativo</span></td>
+            <td>
+                <a href="animal.php?id=${animal.id}" style="color:#1f7a3f; font-weight:bold; text-decoration:none;">
+                    Ver detalhes
+                </a>
+            </td>
+        `;
+
+        tabelaAnimais.appendChild(tr);
+    });
+
+    atualizarCards(animais);
+}
+        function aplicarFiltro() {
+    const campoBusca = document.getElementById('buscaAnimais');
+    const termo = normalizarTexto(campoBusca.value);
+
+    if (termo === '') {
+        renderizarAnimais(todosAnimais);
+        return;
+    }
+
+    const animaisFiltrados = todosAnimais.filter(animal => {
+        const textoBusca = normalizarTexto(
+            `${animal.brinco} ${animal.nome_apelido} ${animal.raca} ${animal.lote} ${animal.sexo}`
+        );
+
+        return textoBusca.includes(termo);
+    });
+
+    renderizarAnimais(animaisFiltrados);
+}
+        document.getElementById('buscaAnimais').addEventListener('input', aplicarFiltro);
         carregarAnimais();
     </script>
 </body>
