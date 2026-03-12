@@ -471,38 +471,22 @@
                     tabelaAnimais.appendChild(tr);
                 });
 
-                atualizarCards(animais);
+                function atualizarCards(animais) {
+    const totalAnimais = animais.length;
 
-            } catch (erro) {
-                loading.textContent = 'Erro ao carregar animais.';
-                console.error('Erro:', erro);
-            }
-        }
-           let todosAnimais = [];
+    const totalMachos = animais.filter(animal =>
+        normalizarTexto(animal.sexo) === 'macho'
+    ).length;
 
-function normalizarTexto(texto) {
-    return (texto || '')
-        .toString()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-}       
-        function atualizarCards(animais) {
-            const totalAnimais = animais.length;
+    const totalFemeas = animais.filter(animal =>
+        normalizarTexto(animal.sexo) === 'femea'
+    ).length;
 
-            const totalMachos = animais.filter(animal =>
-                (animal.sexo || '').toLowerCase() === 'macho'
-            ).length;
-
-            const totalFemeas = animais.filter(animal =>
-                (animal.sexo || '').toLowerCase() === 'fêmea' ||
-                (animal.sexo || '').toLowerCase() === 'femea'
-            ).length;
-
-            document.getElementById('totalAnimais').textContent = totalAnimais;
-            document.getElementById('totalMachos').textContent = totalMachos;
-            document.getElementById('totalFemeas').textContent = totalFemeas;
-        }
+    document.getElementById('totalAnimais').textContent = totalAnimais;
+    document.getElementById('totalMachos').textContent = totalMachos;
+    document.getElementById('totalFemeas').textContent = totalFemeas;
+}
+        
 
         carregarAnimais();
     </script>
