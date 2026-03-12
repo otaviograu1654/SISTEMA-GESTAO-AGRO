@@ -468,27 +468,6 @@
             mensagem.className = `mensagem ${tipo}`;
         }
 
-        document.getElementById('formAnimal').addEventListener('submit', async function(event) {
-            event.preventDefault();
-
-            const dados = {
-                brinco: document.getElementById('brinco').value.trim(),
-                nome_apelido: document.getElementById('nome_apelido').value.trim(),
-                raca: document.getElementById('raca').value.trim(),
-                sexo: document.getElementById('sexo').value,
-                data_nascimento: document.getElementById('data_nascimento').value,
-                lote: document.getElementById('lote').value.trim()
-            };
-
-            try {
-                const resposta = await fetch('animais.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dados)
-                });
-
                 const resultado = await resposta.json();
 
                 if (!resposta.ok) {
