@@ -280,6 +280,30 @@
                 grid-template-columns: 1fr;
             }
         }
+        .search-box {
+    margin-bottom: 16px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d8d8d8;
+    border-radius: 10px;
+    font-size: 14px;
+    background: white;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #2fa35a;
+    box-shadow: 0 0 0 3px rgba(47,163,90,0.12);
+}
+
+.search-help {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #666;
+}
     </style>
 </head>
 <body>
