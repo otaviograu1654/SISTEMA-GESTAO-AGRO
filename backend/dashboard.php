@@ -425,6 +425,17 @@
     </div>
 
     <script>
+
+        let todosAnimais = [];
+
+function normalizarTexto(texto) {
+    return (texto || '')
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}
+
         async function carregarAnimais() {
     const loading = document.getElementById('loading');
 
