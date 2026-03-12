@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-
+// talvez mudar para require_once __DIR__ em todos os arquivos que usam para evitar conflito de busca
 require_once 'db.php';
 
 function responder($dados, int $status = 200): void
