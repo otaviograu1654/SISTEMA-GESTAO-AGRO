@@ -264,7 +264,7 @@
         .helper-text {
             margin-top: 8px;
             font-size: 13px;
-            color: #666;
+            color: #667;
         }
 
         @media (max-width: 900px) {
@@ -359,6 +359,16 @@
                 <div class="grid-panels">
                     <div class="panel" id="animais">
                         <h2>Animais cadastrados</h2>
+                        <div class="search-box">
+    <input
+        type="text"
+        id="buscaAnimais"
+        placeholder="Pesquisar por brinco, nome, raça ou lote..."
+    >
+    <div class="search-help">
+        A busca filtra os animais exibidos na tabela.
+    </div>
+</div>
 
                         <div id="loading" class="loading">Carregando animais...</div>
 
