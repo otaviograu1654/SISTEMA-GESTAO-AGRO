@@ -478,7 +478,15 @@
                 console.error('Erro:', erro);
             }
         }
+           let todosAnimais = [];
 
+function normalizarTexto(texto) {
+    return (texto || '')
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}       
         function atualizarCards(animais) {
             const totalAnimais = animais.length;
 
