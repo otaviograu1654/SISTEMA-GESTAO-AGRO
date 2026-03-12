@@ -426,50 +426,24 @@
 
     <script>
         async function carregarAnimais() {
-            const loading = document.getElementById('loading');
-            const tableWrapper = document.getElementById('tableWrapper');
-            const emptyState = document.getElementById('emptyState');
-            const tabelaAnimais = document.getElementById('tabelaAnimais');
+    const loading = document.getElementById('loading');
 
-            try {
-                const resposta = await fetch('animais.php');
-                const animais = await resposta.json();
+    try {
+        const resposta = await fetch('animais.php');
 
-                loading.style.display = 'none';
+        if (!resposta.ok) {
+            throw new Error('Erro ao buscar animais');
+        }
 
-                if (!Array.isArray(animais) || animais.length === 0) {
-                    tableWrapper.style.display = 'none';
-                    emptyState.style.display = 'block';
-                    tabelaAnimais.innerHTML = '';
-                    atualizarCards([]);
-                    return;
-                }
+        const animais = await resposta.json();
+        todosAnimais = Array.isArray(animais) ? animais : [];
+        aplicarFiltro();
 
-                emptyState.style.display = 'none';
-                tableWrapper.style.display = 'block';
-                tabelaAnimais.innerHTML = '';
-
-                animais.forEach(animal => {
-                    const tr = document.createElement('tr');
-
-                    tr.innerHTML = `
-    <td>${animal.id ?? ''}</td>
-    <td>${animal.brinco ?? ''}</td>
-    <td>${animal.nome_apelido ?? ''}</td>
-    <td>${animal.raca ?? ''}</td>
-    <td>${animal.sexo ?? ''}</td>
-    <td>${animal.data_nascimento ?? ''}</td>
-    <td>${animal.lote ?? ''}</td>
-    <td><span class="status">Ativo</span></td>
-    <td>
-        <a href="animal.php?id=${animal.id}" style="color:#1f7a3f; font-weight:bold; text-decoration:none;">
-            Ver detalhes
-        </a>
-    </td>
-`;
-
-                    tabelaAnimais.appendChild(tr);
-                });
+    } catch (erro) {
+        loading.textContent = 'Erro ao carregar animais.';
+        console.error('Erro:', erro);
+    }
+}
 
                 function atualizarCards(animais) {
     const totalAnimais = animais.length;
