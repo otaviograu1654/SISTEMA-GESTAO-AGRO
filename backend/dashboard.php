@@ -304,6 +304,29 @@
     font-size: 13px;
     color: #666;
 }
+
+/* --- ESTILOS DO SUBMENU --- */
+        .submenu {
+            display: none;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: rgba(0, 0, 0, 0.15); /* Fundo um pouco mais escuro */
+        }
+
+        .submenu li a {
+            border-left: 4px solid transparent;
+        }
+
+        .submenu li a:hover {
+            border-left-color: #66d18f;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .setinha.girar {
+            transform: rotate(180deg);
+        }
+
     </style>
 </head>
 <body>
@@ -322,7 +345,19 @@
 
                 <div class="menu-title">Módulos</div>
                 <a href="#" class="disabled">Pesagens</a>
-                <a href="#" class="disabled">Financeiro</a>
+                <div class="menu-title">Módulos</div>
+                <a href="#" class="disabled">Pesagens</a>
+                
+                <div class="menu-item">
+                    <a href="#" class="menu-link" onclick="toggleSubMenu('submenu-financeiro', this); return false;" style="display: flex; justify-content: space-between; align-items: center;">
+                        Financeiro
+                        <span class="setinha" style="transition: transform 0.3s ease;">▾</span>
+                    </a>
+                    
+                    <ul id="submenu-financeiro" class="submenu">
+                        <li><a href="contas_a_pagar.php" style="padding-left: 40px; font-size: 14px; opacity: 0.9;">Contas a Pagar</a></li>
+                        </ul>
+                </div>
                 <a href="#" class="disabled">Relatórios</a>
             </nav>
         </aside>
@@ -536,6 +571,23 @@ function normalizarTexto(texto) {
 }
         document.getElementById('buscaAnimais').addEventListener('input', aplicarFiltro);
         carregarAnimais();
+
+        // Função para abrir/fechar o submenu e girar a setinha
+        function toggleSubMenu(idSubmenu, elementoLink) {
+            const submenu = document.getElementById(idSubmenu);
+            const setinha = elementoLink.querySelector('.setinha');
+
+            // Se o menu estiver escondido, a gente mostra e gira a seta
+            if (submenu.style.display === "none" || submenu.style.display === "") {
+                submenu.style.display = "block";
+                setinha.classList.add("girar");
+            } else {
+                // Se já estiver aberto, a gente esconde e volta a seta ao normal
+                submenu.style.display = "none";
+                setinha.classList.remove("girar");
+            }
+        }
+        
     </script>
 </body>
 </html>

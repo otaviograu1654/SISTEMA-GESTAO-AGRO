@@ -1,1 +1,3 @@
 Não mexer no módulo animais, testamos em várias máquinas e está estável.
+
+PADRONIZAR PAGINAS COM O CSS DEPOIS, FAZER UM STYLE.CSS E JOGAR TUDO LA

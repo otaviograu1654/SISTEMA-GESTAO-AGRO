@@ -53,3 +53,13 @@ CREATE TABLE IF NOT EXISTS financeiro (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS tabelacontas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(150),
+    valor DECIMAL(10,2) NOT NULL,
+    data_vencimento DATE NOT NULL,
+    natureza VARCHAR(100) NOT NULL,
+    prioridade ENUM('baixa','media','alta'),
+    status ENUM('pendente','pago') DEFAULT 'pendente',
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
