@@ -23,28 +23,20 @@
         }
 
         .sidebar {
-            width: 240px;
-            background: linear-gradient(180deg, #264d2f, #1f3f27);
-            color: white;
-            padding: 20px 0;
-            flex-shrink: 0;
-        }
-
-        .sidebar .logo {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.12);
-        }
-
-        .sidebar .logo h2 {
-            margin: 0;
-            font-size: 22px;
-        }
-
-        .sidebar .logo p {
-            margin: 6px 0 0;
-            font-size: 13px;
-            opacity: 0.8;
-        }
+    width: 240px;
+    left: -240px; /* Começa escondido fora da tela */
+    background: linear-gradient(180deg, #264d2f, #1f3f27);
+    color: white;
+    padding: 20px 0;
+    position: fixed; /* A mágica: Tira o menu do chão e faz ele flutuar */
+    top: 70px; /* Altura da sua barra branca superior */
+    height: calc(100vh - 70px);
+    z-index: 990; /* Fica por cima da sombra */
+    transition: left 0.3s ease;
+}
+.sidebar.aberto {
+    left: 0; /* desliza para dentro da tela */
+}
 
         .menu {
             margin-top: 20px;
@@ -85,13 +77,44 @@
         }
 
         .topbar {
-            background: white;
-            padding: 20px 24px;
-            border-bottom: 1px solid #e5e7eb;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    position: sticky;
+    top: 0; z-index: 100; 
         }
 
-        .topbar h1 {
+        .btn-Menu {
+    margin-right: 20px;
+    padding: 4px 10px;
+    background: transparent;
+    color: #1f7a3f;
+    border: 1px solid #1f7a3f;
+    border-radius: 8px;
+    font-size: 24px;
+    cursor: pointer;
+    transition: 0.2s; }
+
+    .btnMenu:hover { background: #e7f6ec; }
+
+    .overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.5); /* preto com 50% de transparência */
+    z-index: 980; /* Fica acima da página, mas abaixo do menu */
+    opacity: 0; visibility: hidden;
+    transition: all 0.3s ease;
+    }
+    .overlay.ativo {
+    opacity: 1; visibility: visible; /* opacidade suave*/
+    }
+
+
+
+        .topbar h2 {
             margin: 0;
             font-size: 28px;
             color: #1f7a3f;
@@ -272,9 +295,7 @@
                 flex-direction: column;
             }
 
-            .sidebar {
-                width: 100%;
-            }
+            
 
             .grid-panels {
                 grid-template-columns: 1fr;
@@ -330,12 +351,16 @@
     </style>
 </head>
 <body>
+    <header class="topbar">
+        <button id="btnMenu" class="btn-Menu">☰</button>
+        <div class="titulo">
+            <h2>SGA Pecuária</h2>
+            <p>Fazenda Paraíso</p>
+        </div>
+    </header>
+    <div id="overlay" class="overlay"></div>
     <div class="layout">
         <aside class="sidebar">
-            <div class="logo">
-                <h2>SGA Pecuária</h2>
-                <p>Fazenda Paraíso</p>
-            </div>
 
             <nav class="menu">
                 <div class="menu-title">Principal</div>
@@ -363,10 +388,6 @@
         </aside>
 
         <main class="main">
-            <div class="topbar" id="dashboard">
-                <h1>SGA Pecuária</h1>
-                <p>Painel inicial do sistema</p>
-            </div>
 
             <div class="content">
                 <div class="cards">
@@ -587,6 +608,31 @@ function normalizarTexto(texto) {
                 setinha.classList.remove("girar");
             }
         }
+        function toggleSubMenu(idSubmenu, elementoLink) {
+            const submenu = document.getElementById(idSubmenu);
+            const setinha = elementoLink.querySelector('.setinha');
+
+            if (submenu.style.display === "none" || submenu.style.display === "") {
+                submenu.style.display = "block";
+                setinha.classList.add("girar");
+            } else {
+                submenu.style.display = "none";
+                setinha.classList.remove("girar");
+            }
+        }
+
+        const btnMenu = document.getElementById('btnMenu');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
+
+        btnMenu.addEventListener('click', function() {
+            sidebar.classList.toggle('aberto');
+            overlay.classList.toggle('ativo');
+        });
+        overlay.addEventListener('click', function(){
+            sidebar.classList.remove('aberto');
+            overlay.classList.remove('ativo');
+        })
         
     </script>
 </body>
