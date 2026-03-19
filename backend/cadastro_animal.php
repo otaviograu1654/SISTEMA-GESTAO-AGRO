@@ -1,4 +1,3 @@
-<?php include __DIR__ . '/includes/menu.php'; ?>
 <?php
 require_once 'db.php';
 
