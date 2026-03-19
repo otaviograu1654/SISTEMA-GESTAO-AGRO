@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once __DIR__ . '/db.php';
 
 $erro = '';
 
@@ -13,7 +13,107 @@ function selecionado(string $chave, string $valor): string
     return (($_POST[$chave] ?? '') === $valor) ? 'selected' : '';
 }
 
-/* resto da lógica PHP aqui */
+try {
+    $stmtFemeas = $pdo->query("
+        SELECT id, nome_apelido, brinco
+        FROM animais
+        WHERE sexo = 'Fêmea'
+        ORDER BY nome_apelido ASC, id ASC
+    ");
+    $femeas = $stmtFemeas->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmtMachos = $pdo->query("
+        SELECT id, nome_apelido, brinco
+        FROM animais
+        WHERE sexo = 'Macho'
+        ORDER BY nome_apelido ASC, id ASC
+    ");
+    $machos = $stmtMachos->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+    die('Erro ao carregar listas de mãe e pai: ' . $e->getMessage());
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $brinco = trim($_POST['brinco'] ?? '');
+    $nome_apelido = trim($_POST['nome_apelido'] ?? '');
+    $raca = trim($_POST['raca'] ?? '');
+    $sexo = trim($_POST['sexo'] ?? '');
+    $data_nascimento = trim($_POST['data_nascimento'] ?? '');
+    $lote = trim($_POST['lote'] ?? '');
+    $mae_id = trim($_POST['mae_id'] ?? '');
+    $pai_id = trim($_POST['pai_id'] ?? '');
+    $data_ultimo_cio = trim($_POST['data_ultimo_cio'] ?? '');
+    $prenha = trim($_POST['prenha'] ?? '0');
+
+    if ($brinco === '' || $nome_apelido === '' || $raca === '' || $sexo === '') {
+        $erro = 'Preencha os campos obrigatórios: brinco, nome/apelido, raça e sexo.';
+    }
+
+    if ($erro === '' && $mae_id !== '' && $pai_id !== '' && $mae_id === $pai_id) {
+        $erro = 'Mãe e pai não podem ser o mesmo animal.';
+    }
+
+    if ($erro === '') {
+        if ($sexo !== 'Fêmea') {
+            $data_ultimo_cio = '';
+            $prenha = '0';
+        }
+
+        try {
+            $sql = "
+                INSERT INTO animais (
+                    brinco,
+                    nome_apelido,
+                    raca,
+                    sexo,
+                    data_nascimento,
+                    lote,
+                    mae_id,
+                    pai_id,
+                    data_ultimo_cio,
+                    prenha
+                ) VALUES (
+                    :brinco,
+                    :nome_apelido,
+                    :raca,
+                    :sexo,
+                    :data_nascimento,
+                    :lote,
+                    :mae_id,
+                    :pai_id,
+                    :data_ultimo_cio,
+                    :prenha
+                )
+            ";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':brinco' => $brinco,
+                ':nome_apelido' => $nome_apelido,
+                ':raca' => $raca,
+                ':sexo' => $sexo,
+                ':data_nascimento' => $data_nascimento !== '' ? $data_nascimento : null,
+                ':lote' => $lote !== '' ? $lote : null,
+                ':mae_id' => $mae_id !== '' ? (int) $mae_id : null,
+                ':pai_id' => $pai_id !== '' ? (int) $pai_id : null,
+                ':data_ultimo_cio' => $data_ultimo_cio !== '' ? $data_ultimo_cio : null,
+                ':prenha' => ($prenha === '1') ? 1 : 0,
+            ]);
+
+            $novoId = $pdo->lastInsertId();
+            header('Location: animal.php?id=' . $novoId);
+            exit;
+
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000') {
+                $erro = 'Já existe um animal cadastrado com esse brinco.';
+            } else {
+                $erro = 'Erro ao cadastrar animal: ' . $e->getMessage();
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -21,9 +121,8 @@ function selecionado(string $chave, string $valor): string
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastrar Animal</title>
-
     <link rel="stylesheet" href="styles.css">
-    
+
     <style>
         * {
             box-sizing: border-box;
@@ -34,6 +133,70 @@ function selecionado(string $chave, string $valor): string
             font-family: Arial, sans-serif;
             background: #f4f6f8;
             color: #222;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            background: #ffffff;
+            border-right: 1px solid #dfe3e8;
+            padding: 20px;
+            flex-shrink: 0;
+            position: static !important;
+            left: auto !important;
+            transform: none !important;
+            display: block !important;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-title {
+            font-weight: bold;
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #1f2937;
+            padding: 10px 12px;
+            border-radius: 8px;
+            transition: 0.2s ease;
+        }
+
+        .menu a:hover {
+            background: #eef6f0;
+            color: #1f7a3f;
+        }
+
+        .menu a.active {
+            background: #e8f5ec;
+            color: #1f7a3f;
+            font-weight: bold;
+        }
+
+        .submenu {
+            list-style: none;
+            padding-left: 0;
+            margin: 6px 0 0;
+        }
+
+        .setinha {
+            transition: transform 0.2s ease;
+        }
+
+        .setinha.girar {
+            transform: rotate(180deg);
         }
 
         .page-content {
@@ -81,6 +244,10 @@ function selecionado(string $chave, string $valor): string
             background: white;
             color: #1f7a3f;
             border: 1px solid #d8e3db;
+        }
+
+        .btn-link:hover {
+            background: #f6faf7;
         }
 
         .grid {
@@ -135,7 +302,8 @@ function selecionado(string $chave, string $valor): string
             color: #444;
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid #d8d8d8;
@@ -144,7 +312,8 @@ function selecionado(string $chave, string $valor): string
             background: white;
         }
 
-        input:focus, select:focus {
+        input:focus,
+        select:focus {
             outline: none;
             border-color: #2fa35a;
             box-shadow: 0 0 0 3px rgba(47,163,90,0.12);
@@ -199,6 +368,17 @@ function selecionado(string $chave, string $valor): string
         }
 
         @media (max-width: 900px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #dfe3e8;
+            }
+
             .grid,
             .form-grid {
                 grid-template-columns: 1fr;
@@ -227,7 +407,105 @@ function selecionado(string $chave, string $valor): string
                 <?php endif; ?>
 
                 <form method="POST" action="">
-                    <!-- resto do formulário -->
+                    <div class="grid">
+                        <div class="card">
+                            <h2>Identificação</h2>
+                            <p>Dados principais do cadastro do animal.</p>
+
+                            <div class="form-grid">
+                                <div class="field">
+                                    <label for="brinco">Brinco *</label>
+                                    <input type="text" id="brinco" name="brinco" value="<?= valorAntigo('brinco') ?>" required>
+                                </div>
+
+                                <div class="field">
+                                    <label for="nome_apelido">Nome / Apelido *</label>
+                                    <input type="text" id="nome_apelido" name="nome_apelido" value="<?= valorAntigo('nome_apelido') ?>" required>
+                                </div>
+
+                                <div class="field">
+                                    <label for="raca">Raça *</label>
+                                    <input type="text" id="raca" name="raca" value="<?= valorAntigo('raca') ?>" required>
+                                </div>
+
+                                <div class="field">
+                                    <label for="sexo">Sexo *</label>
+                                    <select id="sexo" name="sexo" required>
+                                        <option value="">Selecione</option>
+                                        <option value="Macho" <?= selecionado('sexo', 'Macho') ?>>Macho</option>
+                                        <option value="Fêmea" <?= selecionado('sexo', 'Fêmea') ?>>Fêmea</option>
+                                    </select>
+                                </div>
+
+                                <div class="field">
+                                    <label for="data_nascimento">Data de nascimento</label>
+                                    <input type="date" id="data_nascimento" name="data_nascimento" value="<?= valorAntigo('data_nascimento') ?>">
+                                </div>
+
+                                <div class="field">
+                                    <label for="lote">Lote</label>
+                                    <input type="text" id="lote" name="lote" value="<?= valorAntigo('lote') ?>">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h2>Genealogia</h2>
+                            <p>Se souber, informe mãe e pai do animal.</p>
+
+                            <div class="form-grid">
+                                <div class="field full">
+                                    <label for="mae_id">Mãe</label>
+                                    <select id="mae_id" name="mae_id">
+                                        <option value="">Não informar</option>
+                                        <?php foreach ($femeas as $femea): ?>
+                                            <option value="<?= $femea['id'] ?>" <?= (valorAntigo('mae_id') == $femea['id']) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($femea['nome_apelido'] . ' - Brinco ' . $femea['brinco'], ENT_QUOTES, 'UTF-8') ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
+                                <div class="field full">
+                                    <label for="pai_id">Pai</label>
+                                    <select id="pai_id" name="pai_id">
+                                        <option value="">Não informar</option>
+                                        <?php foreach ($machos as $macho): ?>
+                                            <option value="<?= $macho['id'] ?>" <?= (valorAntigo('pai_id') == $macho['id']) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($macho['nome_apelido'] . ' - Brinco ' . $macho['brinco'], ENT_QUOTES, 'UTF-8') ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card full">
+                            <h2>Reprodução</h2>
+                            <p>Campos úteis principalmente para fêmeas.</p>
+
+                            <div class="form-grid">
+                                <div class="field">
+                                    <label for="data_ultimo_cio">Data do último cio</label>
+                                    <input type="date" id="data_ultimo_cio" name="data_ultimo_cio" value="<?= valorAntigo('data_ultimo_cio') ?>">
+                                    <span class="help">Se não souber, pode deixar em branco.</span>
+                                </div>
+
+                                <div class="field">
+                                    <label for="prenha">Prenha?</label>
+                                    <select id="prenha" name="prenha">
+                                        <option value="0" <?= selecionado('prenha', '0') ?>>Não</option>
+                                        <option value="1" <?= selecionado('prenha', '1') ?>>Sim</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit">Salvar animal</button>
+                        <a href="dashboard.php" class="btn-link secondary">Cancelar</a>
+                    </div>
                 </form>
             </div>
         </main>
