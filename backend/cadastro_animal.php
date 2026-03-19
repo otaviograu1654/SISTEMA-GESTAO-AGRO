@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastrar Animal</title>
+    <title>SGA Pecuária - Cadastrar Animal</title>
     <link rel="stylesheet" href="styles.css">
 
     <style>
@@ -135,96 +135,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #222;
         }
 
-        .layout {
-            display: flex;
-            min-height: 100vh;
+        .main {
+            width: 100%;
         }
 
-        .sidebar {
-            width: 260px;
-            min-width: 260px;
-            background: #ffffff;
-            border-right: 1px solid #dfe3e8;
-            padding: 20px;
-            flex-shrink: 0;
-            position: static !important;
-            left: auto !important;
-            transform: none !important;
-            display: block !important;
-        }
-
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .menu-title {
-            font-weight: bold;
-            margin-top: 10px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .menu a {
-            text-decoration: none;
-            color: #1f2937;
-            padding: 10px 12px;
-            border-radius: 8px;
-            transition: 0.2s ease;
-        }
-
-        .menu a:hover {
-            background: #eef6f0;
-            color: #1f7a3f;
-        }
-
-        .menu a.active {
-            background: #e8f5ec;
-            color: #1f7a3f;
-            font-weight: bold;
-        }
-
-        .submenu {
-            list-style: none;
-            padding-left: 0;
-            margin: 6px 0 0;
-        }
-
-        .setinha {
-            transition: transform 0.2s ease;
-        }
-
-        .setinha.girar {
-            transform: rotate(180deg);
-        }
-
-        .page-content {
-            flex: 1;
+        .content {
             padding: 24px;
         }
 
-        .header {
-            background: linear-gradient(135deg, #1f7a3f, #2fa35a);
-            color: white;
-            padding: 24px;
-            border-radius: 14px;
+        .page-header {
+            margin-bottom: 24px;
         }
 
-        .header h1 {
+        .page-header h1 {
             margin: 0;
             font-size: 28px;
+            color: #1f7a3f;
         }
 
-        .header p {
-            margin: 8px 0 0;
-            opacity: 0.95;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 24px auto;
-            padding: 0 16px 32px;
+        .page-header p {
+            margin: 6px 0 0;
+            color: #666;
+            font-size: 14px;
         }
 
         .top-actions {
@@ -368,36 +300,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         @media (max-width: 900px) {
-            .layout {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                min-width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #dfe3e8;
-            }
-
             .grid,
             .form-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 18px;
             }
         }
     </style>
 </head>
 <body>
 
+    <header class="topbar">
+        <button id="btnMenu" class="btn-Menu">☰</button>
+        <div class="titulo">
+            <h2>SGA Pecuária</h2>
+            <p>Fazenda Paraíso</p>
+        </div>
+    </header>
+
+    <div id="overlay" class="overlay"></div>
+
     <div class="layout">
         <?php include __DIR__ . '/includes/menu.php'; ?>
 
-        <main class="page-content">
-            <div class="header">
-                <h1>Cadastrar Animal</h1>
-                <p>Preencha a ficha do animal com o máximo de informações possíveis</p>
-            </div>
+        <main class="main">
+            <div class="content">
 
-            <div class="container">
+                <div class="page-header">
+                    <h1>Cadastrar Animal</h1>
+                    <p>Preencha a ficha do animal com o máximo de informações possíveis</p>
+                </div>
+
                 <div class="top-actions">
                     <a href="dashboard.php" class="btn-link">← Voltar ao dashboard</a>
                 </div>
@@ -507,6 +443,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <a href="dashboard.php" class="btn-link secondary">Cancelar</a>
                     </div>
                 </form>
+
             </div>
         </main>
     </div>
@@ -514,8 +451,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
         function toggleSubMenu(idSubmenu, elementoLink) {
             const submenu = document.getElementById(idSubmenu);
-            if (!submenu) return;
-
             const setinha = elementoLink.querySelector('.setinha');
 
             if (submenu.style.display === "none" || submenu.style.display === "") {
@@ -525,6 +460,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 submenu.style.display = "none";
                 if (setinha) setinha.classList.remove("girar");
             }
+        }
+
+        const btnMenu = document.getElementById('btnMenu');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
+
+        if (btnMenu && sidebar && overlay) {
+            btnMenu.addEventListener('click', function() {
+                sidebar.classList.toggle('aberto');
+                overlay.classList.toggle('ativo');
+            });
+
+            overlay.addEventListener('click', function() {
+                sidebar.classList.remove('aberto');
+                overlay.classList.remove('ativo');
+            });
         }
     </script>
 </body>
