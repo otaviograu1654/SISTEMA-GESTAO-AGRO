@@ -23,28 +23,20 @@
         }
 
         .sidebar {
-            width: 240px;
-            background: linear-gradient(180deg, #264d2f, #1f3f27);
-            color: white;
-            padding: 20px 0;
-            flex-shrink: 0;
-        }
-
-        .sidebar .logo {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.12);
-        }
-
-        .sidebar .logo h2 {
-            margin: 0;
-            font-size: 22px;
-        }
-
-        .sidebar .logo p {
-            margin: 6px 0 0;
-            font-size: 13px;
-            opacity: 0.8;
-        }
+    width: 240px;
+    left: -240px; /* Começa escondido fora da tela */
+    background: linear-gradient(180deg, #264d2f, #1f3f27);
+    color: white;
+    padding: 20px 0;
+    position: fixed; /* A mágica: Tira o menu do chão e faz ele flutuar */
+    top: 70px; /* Altura da sua barra branca superior */
+    height: calc(100vh - 70px);
+    z-index: 990; /* Fica por cima da sombra */
+    transition: left 0.3s ease;
+}
+.sidebar.aberto {
+    left: 0; /* desliza para dentro da tela */
+}
 
         .menu {
             margin-top: 20px;
@@ -85,13 +77,44 @@
         }
 
         .topbar {
-            background: white;
-            padding: 20px 24px;
-            border-bottom: 1px solid #e5e7eb;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    position: sticky;
+    top: 0; z-index: 100; 
         }
 
-        .topbar h1 {
+        .btn-Menu {
+    margin-right: 20px;
+    padding: 4px 10px;
+    background: transparent;
+    color: #1f7a3f;
+    border: 1px solid #1f7a3f;
+    border-radius: 8px;
+    font-size: 24px;
+    cursor: pointer;
+    transition: 0.2s; }
+
+    .btnMenu:hover { background: #e7f6ec; }
+
+    .overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.5); /* preto com 50% de transparência */
+    z-index: 980; /* Fica acima da página, mas abaixo do menu */
+    opacity: 0; visibility: hidden;
+    transition: all 0.3s ease;
+    }
+    .overlay.ativo {
+    opacity: 1; visibility: visible; /* opacidade suave*/
+    }
+
+
+
+        .topbar h2 {
             margin: 0;
             font-size: 28px;
             color: #1f7a3f;
@@ -272,9 +295,7 @@
                 flex-direction: column;
             }
 
-            .sidebar {
-                width: 100%;
-            }
+            
 
             .grid-panels {
                 grid-template-columns: 1fr;
@@ -304,15 +325,42 @@
     font-size: 13px;
     color: #666;
 }
+
+/* --- ESTILOS DO SUBMENU --- */
+        .submenu {
+            display: none;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: rgba(0, 0, 0, 0.15); /* Fundo um pouco mais escuro */
+        }
+
+        .submenu li a {
+            border-left: 4px solid transparent;
+        }
+
+        .submenu li a:hover {
+            border-left-color: #66d18f;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .setinha.girar {
+            transform: rotate(180deg);
+        }
+
     </style>
 </head>
 <body>
+    <header class="topbar">
+        <button id="btnMenu" class="btn-Menu">☰</button>
+        <div class="titulo">
+            <h2>SGA Pecuária</h2>
+            <p>Fazenda Paraíso</p>
+        </div>
+    </header>
+    <div id="overlay" class="overlay"></div>
     <div class="layout">
         <aside class="sidebar">
-            <div class="logo">
-                <h2>SGA Pecuária</h2>
-                <p>Fazenda Paraíso</p>
-            </div>
 
             <nav class="menu">
                 <div class="menu-title">Principal</div>
@@ -322,16 +370,24 @@
 
                 <div class="menu-title">Módulos</div>
                 <a href="#" class="disabled">Pesagens</a>
-                <a href="#" class="disabled">Financeiro</a>
+                <div class="menu-title">Módulos</div>
+                <a href="#" class="disabled">Pesagens</a>
+                
+                <div class="menu-item">
+                    <a href="#" class="menu-link" onclick="toggleSubMenu('submenu-financeiro', this); return false;" style="display: flex; justify-content: space-between; align-items: center;">
+                        Financeiro
+                        <span class="setinha" style="transition: transform 0.3s ease;">▾</span>
+                    </a>
+                    
+                    <ul id="submenu-financeiro" class="submenu">
+                        <li><a href="contas_a_pagar.php" style="padding-left: 40px; font-size: 14px; opacity: 0.9;">Contas a Pagar</a></li>
+                        </ul>
+                </div>
                 <a href="#" class="disabled">Relatórios</a>
             </nav>
         </aside>
 
         <main class="main">
-            <div class="topbar" id="dashboard">
-                <h1>SGA Pecuária</h1>
-                <p>Painel inicial do sistema</p>
-            </div>
 
             <div class="content">
                 <div class="cards">
@@ -536,6 +592,48 @@ function normalizarTexto(texto) {
 }
         document.getElementById('buscaAnimais').addEventListener('input', aplicarFiltro);
         carregarAnimais();
+
+        // Função para abrir/fechar o submenu e girar a setinha
+        function toggleSubMenu(idSubmenu, elementoLink) {
+            const submenu = document.getElementById(idSubmenu);
+            const setinha = elementoLink.querySelector('.setinha');
+
+            // Se o menu estiver escondido, a gente mostra e gira a seta
+            if (submenu.style.display === "none" || submenu.style.display === "") {
+                submenu.style.display = "block";
+                setinha.classList.add("girar");
+            } else {
+                // Se já estiver aberto, a gente esconde e volta a seta ao normal
+                submenu.style.display = "none";
+                setinha.classList.remove("girar");
+            }
+        }
+        function toggleSubMenu(idSubmenu, elementoLink) {
+            const submenu = document.getElementById(idSubmenu);
+            const setinha = elementoLink.querySelector('.setinha');
+
+            if (submenu.style.display === "none" || submenu.style.display === "") {
+                submenu.style.display = "block";
+                setinha.classList.add("girar");
+            } else {
+                submenu.style.display = "none";
+                setinha.classList.remove("girar");
+            }
+        }
+
+        const btnMenu = document.getElementById('btnMenu');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
+
+        btnMenu.addEventListener('click', function() {
+            sidebar.classList.toggle('aberto');
+            overlay.classList.toggle('ativo');
+        });
+        overlay.addEventListener('click', function(){
+            sidebar.classList.remove('aberto');
+            overlay.classList.remove('ativo');
+        })
+        
     </script>
 </body>
 </html>
