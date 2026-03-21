@@ -2,6 +2,8 @@
 require_once __DIR__ . '/db.php';
 
 $erro = '';
+$loteCookie = $_COOKIE['sga_lote_padrao'] ?? '';
+$racaCookie = $_COOKIE['sga_raca_padrao'] ?? '';
 
 function valorAntigo(string $chave, string $padrao = ''): string
 {
