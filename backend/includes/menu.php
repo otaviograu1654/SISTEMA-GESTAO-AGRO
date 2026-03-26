@@ -73,7 +73,7 @@ $relatoriosAberto   = estaAtiva($paginasRelatorios, $paginaAtual);
             </a>
 
             <ul id="submenu-cadastros" class="submenu" style="display: <?= $cadastrosAberto ? 'block' : 'none' ?>;">
-                <li><a href="animais.php" class="<?= $paginaAtual === 'animais.php' ? 'active' : '' ?>">Animais</a></li>
+                <li><a href="animal.php" class="<?= $paginaAtual === 'animal.php' ? 'active' : '' ?>">Animais</a></li>
                 <li><a href="produtos.php" class="<?= $paginaAtual === 'produtos.php' ? 'active' : '' ?>">Produtos</a></li>
                 <li><a href="tipo_animal.php" class="<?= $paginaAtual === 'tipo_animal.php' ? 'active' : '' ?>">Tipo de Animal</a></li>
                 <li><a href="raca.php" class="<?= $paginaAtual === 'raca.php' ? 'active' : '' ?>">Raça</a></li>

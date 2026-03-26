@@ -199,14 +199,43 @@ $paiTexto = $animal['nome_pai']
             background: #fdeaea;
             color: #b42318;
         }
+
+        .topbar {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    position: sticky;
+    top: 0; z-index: 100; 
+        }
+
+        .topbar h2 {
+            margin: 0;
+            font-size: 28px;
+            color: #1f7a3f;
+        }
+
+        .topbar p {
+            margin: 6px 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Detalhes do Animal</h1>
-        <p>Informações completas do cadastro</p>
-    </div>
 
+    <header class="topbar">
+        <button id="btnMenu" class="btn-Menu">☰</button>
+        <div class="titulo">
+            <h2>SGA Pecuária</h2>
+            <p>Fazenda Paraíso</p>
+        </div>
+    </header>
+        <?php include __DIR__ . '/includes/header.php'; ?>
+        <?php include __DIR__ . '/includes/menu.php'; ?>
     <div class="container">
         <div class="top-actions">
             <a href="dashboard.php" class="btn btn-secondary">← Voltar</a>

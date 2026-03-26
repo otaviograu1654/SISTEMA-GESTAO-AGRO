@@ -1,0 +1,341 @@
+* {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+    width: 240px;
+    left: -240px; /* Começa escondido fora da tela */
+    background: linear-gradient(180deg, #264d2f, #1f3f27);
+    color: white;
+    padding: 20px 0;
+    position: fixed; /* A mágica: Tira o menu do chão e faz ele flutuar */
+    top: 70px; /* Altura da sua barra branca superior */
+    height: calc(100vh - 70px);
+    z-index: 990; /* Fica por cima da sombra */
+    transition: left 0.3s ease;
+}
+.sidebar.aberto {
+    left: 0; /* desliza para dentro da tela */
+}
+
+        .menu {
+            margin-top: 20px;
+        }
+
+        .menu-title {
+            padding: 10px 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.65;
+        }
+
+        .menu a {
+            display: block;
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            transition: background 0.2s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .menu a:hover,
+        .menu a.active {
+            background: rgba(255,255,255,0.08);
+            border-left-color: #66d18f;
+        }
+
+        .menu .disabled {
+            opacity: 0.55;
+            cursor: default;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    position: sticky;
+    top: 0; z-index: 100; 
+        }
+
+        .btn-Menu {
+    margin-right: 20px;
+    padding: 4px 10px;
+    background: transparent;
+    color: #1f7a3f;
+    border: 1px solid #1f7a3f;
+    border-radius: 8px;
+    font-size: 24px;
+    cursor: pointer;
+    transition: 0.2s; }
+
+    .btnMenu:hover { background: #e7f6ec; }
+
+    .overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.5); /* preto com 50% de transparência */
+    z-index: 980; /* Fica acima da página, mas abaixo do menu */
+    opacity: 0; visibility: hidden;
+    transition: all 0.3s ease;
+    }
+    .overlay.ativo {
+    opacity: 1; visibility: visible; /* opacidade suave*/
+    }
+
+
+
+        .topbar h2 {
+            margin: 0;
+            font-size: 28px;
+            color: #1f7a3f;
+        }
+
+        .topbar p {
+            margin: 6px 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .content {
+            max-width: 1200px;
+            width: 100%;
+            padding: 24px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .card .value {
+            font-size: 30px;
+            font-weight: bold;
+            color: #1f7a3f;
+        }
+
+        .grid-panels {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 22px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e7e7e7;
+        }
+
+        th {
+            background: #f0f7f2;
+            color: #1f7a3f;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #e7f6ec;
+            color: #1f7a3f;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .empty {
+            padding: 20px;
+            text-align: center;
+            color: #777;
+        }
+
+        .loading {
+            padding: 20px;
+            text-align: center;
+            color: #555;
+        }
+
+        form {
+            display: grid;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d8d8d8;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2fa35a;
+            box-shadow: 0 0 0 3px rgba(47,163,90,0.12);
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            background: #1f7a3f;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        button:hover {
+            background: #186232;
+        }
+
+        .mensagem {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .mensagem.sucesso {
+            background: #e7f6ec;
+            color: #1f7a3f;
+            display: block;
+        }
+
+        .mensagem.erro {
+            background: #fdeaea;
+            color: #b42318;
+            display: block;
+        }
+
+        .helper-text {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #667;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            
+
+            .grid-panels {
+                grid-template-columns: 1fr;
+            }
+        }
+        .search-box {
+    margin-bottom: 16px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d8d8d8;
+    border-radius: 10px;
+    font-size: 14px;
+    background: white;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #2fa35a;
+    box-shadow: 0 0 0 3px rgba(47,163,90,0.12);
+}
+
+.search-help {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #666;
+}
+
+/* --- ESTILOS DO SUBMENU --- */
+        .submenu {
+            display: none;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: rgba(0, 0, 0, 0.15); /* Fundo um pouco mais escuro */
+        }
+
+        .submenu li a {
+            border-left: 4px solid transparent;
+        }
+
+        .submenu li a:hover {
+            border-left-color: #66d18f;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .setinha.girar {
+            transform: rotate(180deg);
+        }
