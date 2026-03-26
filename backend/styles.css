@@ -4,6 +4,21 @@ body { margin: 0;
     background: #f4f6f8;
     color: #222; }
 
+.sidebar {
+    width: 240px;
+    left: -240px;
+    background: linear-gradient(180deg, #264d2f, #1f3f27);
+    color: white;
+    padding: 20px 0;
+    position: fixed;
+    top: 70px;
+    height: calc(100vh - 70px);
+    z-index: 990;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
 /* barra superior*/
 .topbar {
     display: flex;
