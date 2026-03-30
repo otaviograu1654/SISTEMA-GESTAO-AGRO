@@ -358,34 +358,8 @@
             <p>Fazenda Paraíso</p>
         </div>
     </header>
-    <div id="overlay" class="overlay"></div>
-    <div class="layout">
-        <aside class="sidebar">
-
-            <nav class="menu">
-                <div class="menu-title">Principal</div>
-                <a href="#dashboard" class="active">Dashboard</a>
-                <a href="#animais">Animais</a>
-                <a href="cadastro_animal.php">Cadastrar animal</a>
-
-                <div class="menu-title">Módulos</div>
-                <a href="#" class="disabled">Pesagens</a>
-                <div class="menu-title">Módulos</div>
-                <a href="#" class="disabled">Pesagens</a>
-                
-                <div class="menu-item">
-                    <a href="#" class="menu-link" onclick="toggleSubMenu('submenu-financeiro', this); return false;" style="display: flex; justify-content: space-between; align-items: center;">
-                        Financeiro
-                        <span class="setinha" style="transition: transform 0.3s ease;">▾</span>
-                    </a>
-                    
-                    <ul id="submenu-financeiro" class="submenu">
-                        <li><a href="contas_a_pagar.php" style="padding-left: 40px; font-size: 14px; opacity: 0.9;">Contas a Pagar</a></li>
-                        </ul>
-                </div>
-                <a href="#" class="disabled">Relatórios</a>
-            </nav>
-        </aside>
+        <?php include __DIR__ . '/includes/menu.php'; ?>
+    
 
         <main class="main">
 
