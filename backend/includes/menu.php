@@ -92,8 +92,9 @@ $relatoriosAberto   = estaAtiva($paginasRelatorios, $paginaAtual);
                 <li><a href="pastos.php" class="<?= $paginaAtual === 'pastos.php' ? 'active' : '' ?>">Pastos</a></li>
                 <li><a href="lotes.php" class="<?= $paginaAtual === 'lotes.php' ? 'active' : '' ?>">Lotes</a></li>
                 <li><a href="clientes_fornecedores.php" class="<?= $paginaAtual === 'clientes_fornecedores.php' ? 'active' : '' ?>">Clientes / Fornecedores</a></li>
-                <li><a href="vacinas.php" class="<?= $paginaAtual === 'vacinas.php' ? 'active' : '' ?>">Vacinas</a></li>
+                <li><a href="vacinacao.php" class="<?= $paginaAtual === 'vacinacao.php' ? 'active' : '' ?>">Vacinação</a></li>
                 <li><a href="cadastro_animal.php" class="<?= $paginaAtual === 'cadastro_animal.php' ? 'active' : '' ?>">Cadastrar animal</a></li>
+                
             </ul>
         </div>
 
