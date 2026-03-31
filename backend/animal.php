@@ -227,12 +227,7 @@ $paiTexto = $animal['nome_pai']
 </head>
 <body>
 
-    <header class="topbar">
-        <button id="btnMenu" class="btn-Menu">☰</button>
-        <div class="titulo">
-            <h2>SGA Pecuária</h2>
-            <p>Fazenda Paraíso</p>
-        </div>
+    <header> <?php include __DIR__ . '/includes/header.php'; ?>
     </header>
         <?php include __DIR__ . '/includes/header.php'; ?>
         <?php include __DIR__ . '/includes/menu.php'; ?>
@@ -315,53 +310,4 @@ $paiTexto = $animal['nome_pai']
                     </div>
                 </div>
             </div>
-                                <div class="info-item">
-                        <span class="label">Nascimento</span>
-                        <span class="value"><?= textoOuPadrao($animal['data_nascimento']) ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Lote</span>
-                        <span class="value"><?= textoOuPadrao($animal['lote']) ?></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>Genealogia</h2>
-                <div class="info-list">
-                    <div class="info-item">
-                        <span class="label">Mãe</span>
-                        <span class="value"><?= $maeTexto ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Pai</span>
-                        <span class="value"><?= $paiTexto ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Número de crias</span>
-                        <span class="value"><?= $totalCrias ?></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>Reprodução</h2>
-                <div class="info-list">
-                    <div class="info-item">
-                        <span class="label">Último cio</span>
-                        <span class="value"><?= textoOuPadrao($animal['data_ultimo_cio']) ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Prenha</span>
-                        <span class="value">
-                            <span class="badge <?= $prenhaTexto === 'Sim' ? '' : 'badge-nao' ?>">
-                                <?= $prenhaTexto ?>
-                            </span>
-                        </span>
-                    </div>
-                </div>
-            </div>
+                                

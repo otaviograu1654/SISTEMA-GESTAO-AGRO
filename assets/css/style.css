@@ -16,15 +16,10 @@
 
         .sidebar {
     width: 240px;
-    left: -240px; /* Começa escondido fora da tela */
     background: linear-gradient(180deg, #264d2f, #1f3f27);
     color: white;
     padding: 20px 0;
-    position: fixed; /* A mágica: Tira o menu do chão e faz ele flutuar */
-    top: 70px; /* Altura da sua barra branca superior */
-    height: calc(100vh - 70px);
-    z-index: 990; /* Fica por cima da sombra */
-    transition: left 0.3s ease;
+
 }
 .sidebar.aberto {
     left: 0; /* desliza para dentro da tela */
@@ -79,32 +74,9 @@
     top: 0; z-index: 100; 
         }
 
-        .btn-Menu {
-    margin-right: 20px;
-    padding: 4px 10px;
-    background: transparent;
-    color: #1f7a3f;
-    border: 1px solid #1f7a3f;
-    border-radius: 8px;
-    font-size: 24px;
-    cursor: pointer;
-    transition: 0.2s; }
-
-    .btnMenu:hover { background: #e7f6ec; }
-
-    .overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.5); /* preto com 50% de transparência */
-    z-index: 980; /* Fica acima da página, mas abaixo do menu */
-    opacity: 0; visibility: hidden;
-    transition: all 0.3s ease;
-    }
-    .overlay.ativo {
-    opacity: 1; visibility: visible; /* opacidade suave*/
-    }
-
-
+    .btnMenu:hover {
+         background: #e7f6ec; 
+        }
 
         .topbar h2 {
             margin: 0;

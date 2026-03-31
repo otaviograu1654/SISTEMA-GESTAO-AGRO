@@ -30,7 +30,7 @@ $paginasMovimentacao = [
 ];
 
 $paginasFinanceiro = [
-    'contas.php',
+    'contas_a_pagar.php',
     'contas_receber.php',
     'fluxo_caixa.php'
 ];
@@ -120,7 +120,7 @@ $relatoriosAberto   = estaAtiva($paginasRelatorios, $paginaAtual);
             </a>
 
             <ul id="submenu-financeiro" class="submenu" style="display: <?= $financeiroAberto ? 'block' : 'none' ?>;">
-                <li><a href="contas.php" class="<?= $paginaAtual === 'contas.php' ? 'active' : '' ?>">Contas a Pagar</a></li>
+                <li><a href="contas_a_pagar.php" class="<?= $paginaAtual === 'contas_a_pagar.php' ? 'active' : '' ?>">Contas a Pagar</a></li>
                 <li><a href="contas_receber.php" class="<?= $paginaAtual === 'contas_receber.php' ? 'active' : '' ?>">Contas a Receber</a></li>
                 <li><a href="fluxo_caixa.php" class="<?= $paginaAtual === 'fluxo_caixa.php' ? 'active' : '' ?>">Fluxo de Caixa</a></li>
             </ul>

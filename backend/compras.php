@@ -23,110 +23,9 @@ function formatarMoeda($valor)
     return 'R$ ' . number_format((float)$valor, 2, ',', '.');
 }
 ?>
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGA Pecuária - Compras</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
 
-        .page-header h1 {
-            margin: 0 0 6px;
-            font-size: 28px;
-            color: #1f7a3f;
-        }
-
-        .page-header p {
-            margin: 0;
-            color: #666;
-        }
-
-        .grid-resumo {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .card-resumo {
-            background: white;
-            border-radius: 14px;
-            padding: 18px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-        }
-
-        .card-resumo .label {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 8px;
-        }
-
-        .card-resumo .valor {
-            font-size: 28px;
-            font-weight: bold;
-            color: #1f7a3f;
-        }
-
-        .acoes-topo {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn-secundario {
-            display: inline-block;
-            padding: 10px 14px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: bold;
-            border: 1px solid #1f7a3f;
-            color: #1f7a3f;
-            background: white;
-        }
-
-        .btn-secundario:hover {
-            background: #e7f6ec;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .full-width {
-            grid-column: 1 / -1;
-        }
-
-        @media (max-width: 900px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header class="topbar">
-        <button id="btnMenu" class="btn-Menu">☰</button>
-        <div class="titulo">
-            <h2>SGA Pecuária</h2>
-            <p>Fazenda Paraíso</p>
-        </div>
-    </header>
-
-    <div id="overlay" class="overlay"></div>
-
-    <div class="layout">
+        <?php $cssPagina = 'compras.css'; ?>
+        <?php include __DIR__ . '/includes/header.php'; ?>
         <?php include __DIR__ . '/includes/menu.php'; ?>
 
         <main class="main">
@@ -165,7 +64,7 @@ function formatarMoeda($valor)
                 <section class="panel">
                     <h2>Nova compra</h2>
 
-                    <form action="#" method="post">
+                    <form action="#" method="post" class="form-grid">
                         <div class="form-group">
                             <label for="data_compra">Data da compra</label>
                             <input type="date" id="data_compra" name="data_compra">
@@ -255,26 +154,4 @@ function formatarMoeda($valor)
             </div>
         </main>
     </div>
-
-    <script>
-        const btnMenu = document.getElementById('btnMenu');
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.getElementById('overlay');
-
-        if (btnMenu && sidebar && overlay) {
-            btnMenu.addEventListener('click', function () {
-                sidebar.classList.toggle('aberto');
-                overlay.classList.toggle('ativo');
-            });
-
-            overlay.addEventListener('click', function () {
-                sidebar.classList.remove('aberto');
-                overlay.classList.remove('ativo');
-            });
-        }
-    </script>
-</body>
-
-</html>
-
-
+<?php include __DIR__ . '/includes/footer.php'; ?>
