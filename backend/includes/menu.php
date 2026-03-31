@@ -6,6 +6,16 @@ function estaAtiva(array $paginas, string $paginaAtual): bool
     return in_array($paginaAtual, $paginas, true);
 }
 
+$paginasMovimentacao = [
+    'compras.php',
+    'producao.php',
+    'vendas.php',
+    'lancamentos_vista.php',
+    'reproducao.php',
+    'alimentacao.php',
+    'vacinacao.php'
+];
+
 $paginasCadastros = [
     'animais.php',
     'cadastro_animal.php',
