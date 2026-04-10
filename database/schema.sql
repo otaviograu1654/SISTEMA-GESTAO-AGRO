@@ -63,3 +63,23 @@ CREATE TABLE IF NOT EXISTS tabelacontas (
     status ENUM('pendente','pago') DEFAULT 'pendente',
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    perfil VARCHAR(50) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
+    ativo TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS suporte_chamados (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_contato VARCHAR(150) NOT NULL,
+    email_contato VARCHAR(150) NOT NULL,
+    assunto VARCHAR(150) NOT NULL,
+    mensagem TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'Aberto',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
