@@ -1,613 +1,724 @@
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGA Pecuária - Dashboard</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            color: #222;
-        }
-
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-    width: 240px;
-    left: -240px; /* Começa escondido fora da tela */
-    background: linear-gradient(180deg, #264d2f, #1f3f27);
-    color: white;
-    padding: 20px 0;
-    position: fixed; /* A mágica: Tira o menu do chão e faz ele flutuar */
-    top: 70px; /* Altura da sua barra branca superior */
-    height: calc(100vh - 70px);
-    z-index: 990; /* Fica por cima da sombra */
-    transition: left 0.3s ease;
-}
-.sidebar.aberto {
-    left: 0; /* desliza para dentro da tela */
-}
-
-        .menu {
-            margin-top: 20px;
-        }
-
-        .menu-title {
-            padding: 10px 20px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            opacity: 0.65;
-        }
-
-        .menu a {
-            display: block;
-            padding: 12px 20px;
-            color: white;
-            text-decoration: none;
-            transition: background 0.2s ease;
-            border-left: 4px solid transparent;
-        }
-
-        .menu a:hover,
-        .menu a.active {
-            background: rgba(255,255,255,0.08);
-            border-left-color: #66d18f;
-        }
-
-        .menu .disabled {
-            opacity: 0.55;
-            cursor: default;
-        }
-
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .topbar {
-    display: flex;
-    align-items: center;
-    background: white;
-    padding: 12px 24px;
-    border-bottom: 1px solid #e5e7eb;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    position: sticky;
-    top: 0; z-index: 100; 
-        }
-
-        .btn-Menu {
-    margin-right: 20px;
-    padding: 4px 10px;
-    background: transparent;
-    color: #1f7a3f;
-    border: 1px solid #1f7a3f;
-    border-radius: 8px;
-    font-size: 24px;
-    cursor: pointer;
-    transition: 0.2s; }
-
-    .btnMenu:hover { background: #e7f6ec; }
-
-    .overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.5); /* preto com 50% de transparência */
-    z-index: 980; /* Fica acima da página, mas abaixo do menu */
-    opacity: 0; visibility: hidden;
-    transition: all 0.3s ease;
-    }
-    .overlay.ativo {
-    opacity: 1; visibility: visible; /* opacidade suave*/
-    }
-
-
-
-        .topbar h2 {
-            margin: 0;
-            font-size: 28px;
-            color: #1f7a3f;
-        }
-
-        .topbar p {
-            margin: 6px 0 0;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .content {
-            max-width: 1200px;
-            width: 100%;
-            padding: 24px;
-        }
-
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-        }
-
-        .card h3 {
-            margin: 0 0 10px;
-            font-size: 16px;
-            color: #555;
-        }
-
-        .card .value {
-            font-size: 30px;
-            font-weight: bold;
-            color: #1f7a3f;
-        }
-
-        .grid-panels {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-        }
-
-        .panel {
-            background: white;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-        }
-
-        .panel h2 {
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 22px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #e7e7e7;
-        }
-
-        th {
-            background: #f0f7f2;
-            color: #1f7a3f;
-        }
-
-        tr:hover {
-            background: #fafafa;
-        }
-
-        .status {
-            display: inline-block;
-            padding: 6px 10px;
-            border-radius: 999px;
-            background: #e7f6ec;
-            color: #1f7a3f;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .empty {
-            padding: 20px;
-            text-align: center;
-            color: #777;
-        }
-
-        .loading {
-            padding: 20px;
-            text-align: center;
-            color: #555;
-        }
-
-        form {
-            display: grid;
-            gap: 12px;
-        }
-
-        label {
-            font-size: 14px;
-            font-weight: bold;
-            color: #444;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #d8d8d8;
-            border-radius: 10px;
-            font-size: 14px;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #2fa35a;
-            box-shadow: 0 0 0 3px rgba(47,163,90,0.12);
-        }
-
-        button {
-            border: none;
-            border-radius: 10px;
-            padding: 12px 16px;
-            background: #1f7a3f;
-            color: white;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s ease;
-        }
-
-        button:hover {
-            background: #186232;
-        }
-
-        .mensagem {
-            margin-top: 10px;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .mensagem.sucesso {
-            background: #e7f6ec;
-            color: #1f7a3f;
-            display: block;
-        }
-
-        .mensagem.erro {
-            background: #fdeaea;
-            color: #b42318;
-            display: block;
-        }
-
-        .helper-text {
-            margin-top: 8px;
-            font-size: 13px;
-            color: #667;
-        }
-
-        @media (max-width: 900px) {
-            .layout {
-                flex-direction: column;
-            }
-
-            
-
-            .grid-panels {
-                grid-template-columns: 1fr;
-            }
-        }
-        .search-box {
-    margin-bottom: 16px;
-}
-
-.search-box input {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1px solid #d8d8d8;
-    border-radius: 10px;
-    font-size: 14px;
-    background: white;
-}
-
-.search-box input:focus {
-    outline: none;
-    border-color: #2fa35a;
-    box-shadow: 0 0 0 3px rgba(47,163,90,0.12);
-}
-
-.search-help {
-    margin-top: 8px;
-    font-size: 13px;
-    color: #666;
-}
-
-/* --- ESTILOS DO SUBMENU --- */
-        .submenu {
-            display: none;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            background: rgba(0, 0, 0, 0.15); /* Fundo um pouco mais escuro */
-        }
-
-        .submenu li a {
-            border-left: 4px solid transparent;
-        }
-
-        .submenu li a:hover {
-            border-left-color: #66d18f;
-            background: rgba(255,255,255,0.05);
-        }
-
-        .setinha.girar {
-            transform: rotate(180deg);
-        }
-
-    </style>
-</head>
-<body>
-    <header class="topbar">
-        <button id="btnMenu" class="btn-Menu">☰</button>
-        <div class="titulo">
-            <h2>SGA Pecuária</h2>
-            <p>Fazenda Paraíso</p>
-        </div>
-    </header>
-        <?php include __DIR__ . '/includes/menu.php'; ?>
-    
-
-        <main class="main">
-
-            <div class="content">
-                <div class="cards">
-                    <div class="card">
-                        <h3>Total de animais</h3>
-                        <div class="value" id="totalAnimais">0</div>
-                    </div>
-
-                    <div class="card">
-                        <h3>Machos</h3>
-                        <div class="value" id="totalMachos">0</div>
-                    </div>
-
-                    <div class="card">
-                        <h3>Fêmeas</h3>
-                        <div class="value" id="totalFemeas">0</div>
-                    </div>
-
-                    <div class="card">
-                        <h3>Status do sistema</h3>
-                        <div class="value" style="font-size: 20px;">Online</div>
-                    </div>
-                </div>
-
-                <div class="grid-panels">
-                    <div class="panel" id="animais">
-                        <h2>Animais cadastrados</h2>
-                        <div class="search-box">
-    <input
-        type="text"
-        id="buscaAnimais"
-        placeholder="Pesquisar por brinco, nome, raça ou lote..."
-    >
-    <div class="search-help">
-        A busca filtra os animais exibidos na tabela.
-    </div>
-</div>
-
-                        <div id="loading" class="loading">Carregando animais...</div>
-
-                        <div class="table-wrapper" id="tableWrapper" style="display: none;">
-                            <table>
-                                <thead>
-                                    <tr>
-                                       
-    <th>ID</th>
-    <th>Brinco</th>
-    <th>Nome</th>
-    <th>Raça</th>
-    <th>Sexo</th>
-    <th>Nascimento</th>
-    <th>Lote</th>
-    <th>Status</th>
-    <th>Ações</th>
-
-                                    </tr>
-                                </thead>
-                                <tbody id="tabelaAnimais"></tbody>
-                            </table>
-                        </div>
-
-                        <div id="emptyState" class="empty" style="display: none;">
-                            Nenhum animal cadastrado.
-                        </div>
-                    </div>
-
-                   <div class="panel" id="cadastro">
-    <h2>Ações rápidas</h2>
-
-    <p style="color:#666; font-size:14px; margin-top:0;">
-        Use os atalhos abaixo para navegar pelo sistema.
-    </p>
-
-    <div style="display:grid; gap:12px;">
-        <a href="cadastro_animal.php" style="display:block; padding:12px 14px; background:#1f7a3f; color:white; text-decoration:none; border-radius:10px; font-weight:bold;">
-            + Novo animal
-        </a>
-
-        <a href="animal.php?id=1" style="display:block; padding:12px 14px; background:#eef2f7; color:#333; text-decoration:none; border-radius:10px; font-weight:bold;">
-            Ver animal exemplo
-        </a>
-    </div>
-
-    <div class="helper-text">
-        O cadastro completo agora fica em uma página separada.
-    </div>
-</div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script>
-
-        let todosAnimais = [];
-
-function normalizarTexto(texto) {
-    return (texto || '')
-        .toString()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-}
-
-        async function carregarAnimais() {
-    const loading = document.getElementById('loading');
-
+<?php
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/layout.php';
+
+function buscarResumo(PDO $pdo, string $sql, array $padrao, array &$erros, string $contexto): array
+{
     try {
-        const resposta = await fetch('animais.php');
+        $resultado = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
 
-        if (!resposta.ok) {
-            throw new Error('Erro ao buscar animais');
+        if (!is_array($resultado)) {
+            return $padrao;
         }
 
-        const animais = await resposta.json();
-        todosAnimais = Array.isArray(animais) ? animais : [];
-        aplicarFiltro();
-
-    } catch (erro) {
-        loading.textContent = 'Erro ao carregar animais.';
-        console.error('Erro:', erro);
+        return array_merge($padrao, $resultado);
+    } catch (PDOException $e) {
+        $erros[] = $contexto;
+        return $padrao;
     }
 }
 
-                function atualizarCards(animais) {
-    const totalAnimais = animais.length;
-
-    const totalMachos = animais.filter(animal =>
-        normalizarTexto(animal.sexo) === 'macho'
-    ).length;
-
-    const totalFemeas = animais.filter(animal =>
-        normalizarTexto(animal.sexo) === 'femea'
-    ).length;
-
-    document.getElementById('totalAnimais').textContent = totalAnimais;
-    document.getElementById('totalMachos').textContent = totalMachos;
-    document.getElementById('totalFemeas').textContent = totalFemeas;
+function buscarLista(PDO $pdo, string $sql, array &$erros, string $contexto): array
+{
+    try {
+        $resultado = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        return is_array($resultado) ? $resultado : [];
+    } catch (PDOException $e) {
+        $erros[] = $contexto;
+        return [];
+    }
 }
-                function renderizarAnimais(animais) {
-    const loading = document.getElementById('loading');
-    const tableWrapper = document.getElementById('tableWrapper');
-    const emptyState = document.getElementById('emptyState');
-    const tabelaAnimais = document.getElementById('tabelaAnimais');
 
-    loading.style.display = 'none';
+function formatarMoeda(float $valor): string
+{
+    return 'R$ ' . number_format($valor, 2, ',', '.');
+}
 
-    if (!Array.isArray(animais) || animais.length === 0) {
-        tableWrapper.style.display = 'none';
-        emptyState.style.display = 'block';
-        tabelaAnimais.innerHTML = '';
-        atualizarCards([]);
-        return;
+function formatarData(?string $data): string
+{
+    if (!$data) {
+        return '--';
     }
 
-    emptyState.style.display = 'none';
-    tableWrapper.style.display = 'block';
-    tabelaAnimais.innerHTML = '';
+    $timestamp = strtotime($data);
 
-    animais.forEach(animal => {
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `
-            <td>${animal.id ?? ''}</td>
-            <td>${animal.brinco ?? ''}</td>
-            <td>${animal.nome_apelido ?? ''}</td>
-            <td>${animal.raca ?? ''}</td>
-            <td>${animal.sexo ?? ''}</td>
-            <td>${animal.data_nascimento ?? ''}</td>
-            <td>${animal.lote ?? ''}</td>
-            <td><span class="status">Ativo</span></td>
-            <td>
-                <a href="animal.php?id=${animal.id}" style="color:#1f7a3f; font-weight:bold; text-decoration:none;">
-                    Ver detalhes
-                </a>
-            </td>
-        `;
-
-        tabelaAnimais.appendChild(tr);
-    });
-
-    atualizarCards(animais);
-}
-        function aplicarFiltro() {
-    const campoBusca = document.getElementById('buscaAnimais');
-    const termo = normalizarTexto(campoBusca.value);
-
-    if (termo === '') {
-        renderizarAnimais(todosAnimais);
-        return;
+    if ($timestamp === false) {
+        return $data;
     }
 
-    const animaisFiltrados = todosAnimais.filter(animal => {
-        const textoBusca = normalizarTexto(
-            `${animal.brinco} ${animal.nome_apelido} ${animal.raca} ${animal.lote} ${animal.sexo}`
-        );
-
-        return textoBusca.includes(termo);
-    });
-
-    renderizarAnimais(animaisFiltrados);
+    return date('d/m/Y', $timestamp);
 }
-        document.getElementById('buscaAnimais').addEventListener('input', aplicarFiltro);
-        carregarAnimais();
 
-        // Função para abrir/fechar o submenu e girar a setinha
-        function toggleSubMenu(idSubmenu, elementoLink) {
-            const submenu = document.getElementById(idSubmenu);
-            const setinha = elementoLink.querySelector('.setinha');
+function badgeConta(string $status, string $vencimento): string
+{
+    if ($status !== 'pendente') {
+        return 'badge-sucesso';
+    }
 
-            // Se o menu estiver escondido, a gente mostra e gira a seta
-            if (submenu.style.display === "none" || submenu.style.display === "") {
-                submenu.style.display = "block";
-                setinha.classList.add("girar");
-            } else {
-                // Se já estiver aberto, a gente esconde e volta a seta ao normal
-                submenu.style.display = "none";
-                setinha.classList.remove("girar");
-            }
-        }
-        function toggleSubMenu(idSubmenu, elementoLink) {
-            const submenu = document.getElementById(idSubmenu);
-            const setinha = elementoLink.querySelector('.setinha');
+    if ($vencimento < date('Y-m-d')) {
+        return 'badge-erro';
+    }
 
-            if (submenu.style.display === "none" || submenu.style.display === "") {
-                submenu.style.display = "block";
-                setinha.classList.add("girar");
-            } else {
-                submenu.style.display = "none";
-                setinha.classList.remove("girar");
-            }
-        }
+    return 'badge-alerta';
+}
 
-        const btnMenu = document.getElementById('btnMenu');
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.getElementById('overlay');
+function badgeSanitario(string $status, ?string $proximaData): string
+{
+    $statusNormalizado = mb_strtolower(trim($status), 'UTF-8');
 
-        btnMenu.addEventListener('click', function() {
-            sidebar.classList.toggle('aberto');
-            overlay.classList.toggle('ativo');
-        });
-        overlay.addEventListener('click', function(){
-            sidebar.classList.remove('aberto');
-            overlay.classList.remove('ativo');
-        })
-        
-    </script>
-</body>
-</html>
+    if ($statusNormalizado === 'realizado') {
+        return 'badge-sucesso';
+    }
+
+    if ($proximaData && $proximaData < date('Y-m-d')) {
+        return 'badge-erro';
+    }
+
+    return 'badge-alerta';
+}
+
+$errosDashboard = [];
+
+$rebanho = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            COUNT(*) AS total_animais,
+            SUM(CASE WHEN LOWER(sexo) = 'macho' THEN 1 ELSE 0 END) AS machos,
+            SUM(CASE WHEN LOWER(sexo) IN ('femea', 'fêmea') THEN 1 ELSE 0 END) AS femeas,
+            SUM(CASE WHEN prenha = 1 THEN 1 ELSE 0 END) AS prenhas
+        FROM animais
+    ",
+    [
+        'total_animais' => 0,
+        'machos' => 0,
+        'femeas' => 0,
+        'prenhas' => 0,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar o resumo do rebanho.'
+);
+
+$pesagens = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            COUNT(*) AS total_pesagens,
+            SUM(CASE WHEN data_pesagem = CURDATE() THEN 1 ELSE 0 END) AS pesagens_hoje,
+            AVG(peso_kg) AS peso_medio
+        FROM pesagens
+    ",
+    [
+        'total_pesagens' => 0,
+        'pesagens_hoje' => 0,
+        'peso_medio' => 0,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar o resumo de pesagens.'
+);
+
+$ultimaPesagem = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            a.nome_apelido,
+            a.brinco,
+            p.data_pesagem,
+            p.peso_kg
+        FROM pesagens p
+        INNER JOIN animais a ON a.id = p.animal_id
+        ORDER BY p.data_pesagem DESC, p.id DESC
+        LIMIT 1
+    ",
+    [
+        'nome_apelido' => '',
+        'brinco' => '',
+        'data_pesagem' => null,
+        'peso_kg' => null,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar a última pesagem.'
+);
+
+$financeiro = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            COUNT(*) AS total_lancamentos,
+            SUM(CASE WHEN tipo = 'Receita' THEN valor ELSE 0 END) AS total_receitas,
+            SUM(CASE WHEN tipo = 'Despesa' THEN valor ELSE 0 END) AS total_despesas,
+            SUM(CASE WHEN tipo = 'Receita' AND data_lancamento = CURDATE() THEN valor ELSE 0 END) AS receitas_hoje,
+            SUM(CASE WHEN tipo = 'Despesa' AND data_lancamento = CURDATE() THEN valor ELSE 0 END) AS despesas_hoje,
+            SUM(
+                CASE
+                    WHEN tipo = 'Despesa'
+                     AND (
+                        LOWER(COALESCE(categoria, '')) LIKE '%compra%'
+                        OR LOWER(COALESCE(descricao, '')) LIKE '%fornecedor:%'
+                     )
+                    THEN 1 ELSE 0
+                END
+            ) AS total_compras,
+            SUM(
+                CASE
+                    WHEN tipo = 'Despesa'
+                     AND (
+                        LOWER(COALESCE(categoria, '')) LIKE '%compra%'
+                        OR LOWER(COALESCE(descricao, '')) LIKE '%fornecedor:%'
+                     )
+                    THEN valor ELSE 0
+                END
+            ) AS valor_compras,
+            SUM(
+                CASE
+                    WHEN tipo = 'Receita'
+                     AND (
+                        LOWER(COALESCE(categoria, '')) LIKE '%venda%'
+                        OR LOWER(COALESCE(descricao, '')) LIKE '%venda%'
+                     )
+                    THEN 1 ELSE 0
+                END
+            ) AS total_vendas,
+            SUM(
+                CASE
+                    WHEN tipo = 'Receita'
+                     AND (
+                        LOWER(COALESCE(categoria, '')) LIKE '%venda%'
+                        OR LOWER(COALESCE(descricao, '')) LIKE '%venda%'
+                     )
+                    THEN valor ELSE 0
+                END
+            ) AS valor_vendas,
+            COUNT(DISTINCT CASE WHEN categoria IS NOT NULL AND categoria <> '' THEN categoria END) AS total_categorias
+        FROM financeiro
+    ",
+    [
+        'total_lancamentos' => 0,
+        'total_receitas' => 0,
+        'total_despesas' => 0,
+        'receitas_hoje' => 0,
+        'despesas_hoje' => 0,
+        'total_compras' => 0,
+        'valor_compras' => 0,
+        'total_vendas' => 0,
+        'valor_vendas' => 0,
+        'total_categorias' => 0,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar o resumo financeiro.'
+);
+
+$contas = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            COUNT(*) AS total_contas,
+            SUM(CASE WHEN status = 'pendente' THEN 1 ELSE 0 END) AS contas_pendentes,
+            SUM(CASE WHEN status = 'pendente' THEN valor ELSE 0 END) AS valor_pendente,
+            SUM(CASE WHEN status = 'pendente' AND data_vencimento < CURDATE() THEN 1 ELSE 0 END) AS contas_atrasadas,
+            SUM(
+                CASE
+                    WHEN status = 'pendente'
+                     AND data_vencimento BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+                    THEN 1 ELSE 0
+                END
+            ) AS contas_semana
+        FROM tabelacontas
+    ",
+    [
+        'total_contas' => 0,
+        'contas_pendentes' => 0,
+        'valor_pendente' => 0,
+        'contas_atrasadas' => 0,
+        'contas_semana' => 0,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar as contas a pagar.'
+);
+
+$sanitario = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            COUNT(*) AS total_manejos,
+            SUM(CASE WHEN LOWER(tipo) IN ('vacinacao', 'vacinação') THEN 1 ELSE 0 END) AS total_vacinacoes,
+            SUM(
+                CASE
+                    WHEN LOWER(tipo) IN ('vacinacao', 'vacinação')
+                     AND data_evento = CURDATE()
+                     AND LOWER(COALESCE(status, '')) = 'realizado'
+                    THEN 1 ELSE 0
+                END
+            ) AS vacinacoes_hoje,
+            SUM(
+                CASE
+                    WHEN LOWER(tipo) IN ('vacinacao', 'vacinação')
+                     AND proxima_data >= CURDATE()
+                    THEN 1 ELSE 0
+                END
+            ) AS vacinacoes_proximas,
+            SUM(
+                CASE
+                    WHEN LOWER(tipo) IN ('vacinacao', 'vacinação')
+                     AND proxima_data < CURDATE()
+                     AND LOWER(COALESCE(status, '')) <> 'realizado'
+                    THEN 1 ELSE 0
+                END
+            ) AS vacinacoes_atrasadas
+        FROM manejos_sanitarios
+    ",
+    [
+        'total_manejos' => 0,
+        'total_vacinacoes' => 0,
+        'vacinacoes_hoje' => 0,
+        'vacinacoes_proximas' => 0,
+        'vacinacoes_atrasadas' => 0,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar o resumo sanitário.'
+);
+
+$usuarios = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            COUNT(*) AS total_usuarios,
+            SUM(CASE WHEN ativo = 1 THEN 1 ELSE 0 END) AS usuarios_ativos,
+            SUM(CASE WHEN perfil = 'Administrador' THEN 1 ELSE 0 END) AS administradores
+        FROM usuarios
+    ",
+    [
+        'total_usuarios' => 0,
+        'usuarios_ativos' => 0,
+        'administradores' => 0,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar os usuários.'
+);
+
+$suporte = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            COUNT(*) AS total_chamados,
+            SUM(CASE WHEN status = 'Aberto' THEN 1 ELSE 0 END) AS chamados_abertos,
+            SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) AS chamados_hoje
+        FROM suporte_chamados
+    ",
+    [
+        'total_chamados' => 0,
+        'chamados_abertos' => 0,
+        'chamados_hoje' => 0,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar os chamados de suporte.'
+);
+
+$animaisRecentes = buscarLista(
+    $pdo,
+    "
+        SELECT id, brinco, nome_apelido, raca, sexo, lote, created_at
+        FROM animais
+        ORDER BY id DESC
+        LIMIT 6
+    ",
+    $errosDashboard,
+    'Não foi possível carregar os animais recentes.'
+);
+
+$lancamentosRecentes = buscarLista(
+    $pdo,
+    "
+        SELECT tipo, categoria, descricao, valor, data_lancamento
+        FROM financeiro
+        ORDER BY data_lancamento DESC, id DESC
+        LIMIT 6
+    ",
+    $errosDashboard,
+    'Não foi possível carregar os lançamentos recentes.'
+);
+
+$contasProximas = buscarLista(
+    $pdo,
+    "
+        SELECT descricao, natureza, valor, data_vencimento, prioridade, status
+        FROM tabelacontas
+        ORDER BY
+            CASE WHEN status = 'pendente' THEN 0 ELSE 1 END,
+            data_vencimento ASC,
+            id DESC
+        LIMIT 6
+    ",
+    $errosDashboard,
+    'Não foi possível carregar as próximas contas.'
+);
+
+$agendaSanitaria = buscarLista(
+    $pdo,
+    "
+        SELECT a.nome_apelido, a.brinco, ms.tipo, ms.descricao, ms.data_evento, ms.proxima_data, ms.status
+        FROM manejos_sanitarios ms
+        INNER JOIN animais a ON a.id = ms.animal_id
+        ORDER BY
+            CASE WHEN ms.proxima_data IS NULL THEN 1 ELSE 0 END,
+            ms.proxima_data ASC,
+            ms.data_evento DESC,
+            ms.id DESC
+        LIMIT 6
+    ",
+    $errosDashboard,
+    'Não foi possível carregar a agenda sanitária.'
+);
+
+$saldoFinanceiro = (float) $financeiro['total_receitas'] - (float) $financeiro['total_despesas'];
+
+layoutInicio('Dashboard');
+?>
+
+<div class="page-header dashboard-header">
+    <div>
+        <h1>Dashboard geral</h1>
+        <p>Resumo consolidado dos módulos do backend com indicadores operacionais, financeiros e de cadastro.</p>
+    </div>
+
+    <div class="top-actions">
+        <a class="btn-link" href="animais.php">Ver animais</a>
+        <a class="btn-link" href="pesagens.php">Registrar pesagem</a>
+        <a class="btn-link" href="vacinacao.php">Registrar vacinação</a>
+        <a class="btn-link" href="compras.php">Lançar compra</a>
+        <a class="btn-link" href="vendas.php">Lançar venda</a>
+    </div>
+</div>
+
+<?php if (!empty($errosDashboard)): ?>
+    <div class="mensagem erro" style="display: block; margin-bottom: 16px;">
+        Algumas informações do dashboard não puderam ser carregadas.
+    </div>
+<?php endif; ?>
+
+<section class="dashboard-section">
+    <div class="section-title">
+        <h2>Rebanho e produção</h2>
+        <p>Indicadores principais de cadastro animal e acompanhamento de peso.</p>
+    </div>
+
+    <div class="cards dashboard-cards">
+        <div class="card metric-card">
+            <h3>Total de animais</h3>
+            <div class="value"><?= (int) $rebanho['total_animais'] ?></div>
+            <div class="metric-meta">Rebanho cadastrado no sistema</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Machos</h3>
+            <div class="value"><?= (int) $rebanho['machos'] ?></div>
+            <div class="metric-meta">Animais classificados como macho</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Fêmeas</h3>
+            <div class="value"><?= (int) $rebanho['femeas'] ?></div>
+            <div class="metric-meta">Animais classificados como fêmea</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Prenhas</h3>
+            <div class="value"><?= (int) $rebanho['prenhas'] ?></div>
+            <div class="metric-meta">Matrizes com prenhez marcada</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Total de pesagens</h3>
+            <div class="value"><?= (int) $pesagens['total_pesagens'] ?></div>
+            <div class="metric-meta">Registros de peso salvos</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Pesagens hoje</h3>
+            <div class="value"><?= (int) $pesagens['pesagens_hoje'] ?></div>
+            <div class="metric-meta">Movimentação do dia</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Peso médio</h3>
+            <div class="value"><?= $pesagens['total_pesagens'] > 0 ? number_format((float) $pesagens['peso_medio'], 1, ',', '.') . ' kg' : '--' ?></div>
+            <div class="metric-meta">Média geral das pesagens</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Última pesagem</h3>
+            <div class="value value-sm"><?= $ultimaPesagem['peso_kg'] !== null ? number_format((float) $ultimaPesagem['peso_kg'], 2, ',', '.') . ' kg' : '--' ?></div>
+            <div class="metric-meta">
+                <?= $ultimaPesagem['nome_apelido'] !== '' ? htmlspecialchars($ultimaPesagem['nome_apelido'], ENT_QUOTES, 'UTF-8') . ' em ' . formatarData($ultimaPesagem['data_pesagem']) : 'Nenhuma pesagem registrada' ?>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-section">
+    <div class="section-title">
+        <h2>Financeiro</h2>
+        <p>Fluxo de receitas, despesas, compras, vendas e compromissos pendentes.</p>
+    </div>
+
+    <div class="cards dashboard-cards">
+        <div class="card metric-card">
+            <h3>Receitas</h3>
+            <div class="value value-money"><?= formatarMoeda((float) $financeiro['total_receitas']) ?></div>
+            <div class="metric-meta">Total registrado no financeiro</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Despesas</h3>
+            <div class="value value-money"><?= formatarMoeda((float) $financeiro['total_despesas']) ?></div>
+            <div class="metric-meta">Saídas já lançadas</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Saldo</h3>
+            <div class="value value-money <?= $saldoFinanceiro >= 0 ? 'value-positive' : 'value-negative' ?>"><?= formatarMoeda($saldoFinanceiro) ?></div>
+            <div class="metric-meta">Receitas menos despesas</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Receitas hoje</h3>
+            <div class="value value-money"><?= formatarMoeda((float) $financeiro['receitas_hoje']) ?></div>
+            <div class="metric-meta">Entradas do dia atual</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Despesas hoje</h3>
+            <div class="value value-money"><?= formatarMoeda((float) $financeiro['despesas_hoje']) ?></div>
+            <div class="metric-meta">Saídas do dia atual</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Compras lançadas</h3>
+            <div class="value"><?= (int) $financeiro['total_compras'] ?></div>
+            <div class="metric-meta"><?= formatarMoeda((float) $financeiro['valor_compras']) ?> em compras</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Vendas lançadas</h3>
+            <div class="value"><?= (int) $financeiro['total_vendas'] ?></div>
+            <div class="metric-meta"><?= formatarMoeda((float) $financeiro['valor_vendas']) ?> em vendas</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Contas pendentes</h3>
+            <div class="value"><?= (int) $contas['contas_pendentes'] ?></div>
+            <div class="metric-meta"><?= formatarMoeda((float) $contas['valor_pendente']) ?> a pagar</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Contas atrasadas</h3>
+            <div class="value"><?= (int) $contas['contas_atrasadas'] ?></div>
+            <div class="metric-meta">Pendências vencidas</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Vencendo em 7 dias</h3>
+            <div class="value"><?= (int) $contas['contas_semana'] ?></div>
+            <div class="metric-meta">Contas para esta semana</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Lançamentos</h3>
+            <div class="value"><?= (int) $financeiro['total_lancamentos'] ?></div>
+            <div class="metric-meta">Movimentações financeiras totais</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Categorias</h3>
+            <div class="value"><?= (int) $financeiro['total_categorias'] ?></div>
+            <div class="metric-meta">Plano de contas em uso</div>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-section">
+    <div class="section-title">
+        <h2>Sanidade, usuários e suporte</h2>
+        <p>Indicadores de rotina sanitária e administração do sistema.</p>
+    </div>
+
+    <div class="cards dashboard-cards">
+        <div class="card metric-card">
+            <h3>Manejos sanitários</h3>
+            <div class="value"><?= (int) $sanitario['total_manejos'] ?></div>
+            <div class="metric-meta">Registros totais da agenda sanitária</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Vacinações</h3>
+            <div class="value"><?= (int) $sanitario['total_vacinacoes'] ?></div>
+            <div class="metric-meta">Aplicações já cadastradas</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Aplicadas hoje</h3>
+            <div class="value"><?= (int) $sanitario['vacinacoes_hoje'] ?></div>
+            <div class="metric-meta">Vacinações realizadas no dia</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Próximas vacinações</h3>
+            <div class="value"><?= (int) $sanitario['vacinacoes_proximas'] ?></div>
+            <div class="metric-meta">Agendamentos futuros</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Vacinações atrasadas</h3>
+            <div class="value"><?= (int) $sanitario['vacinacoes_atrasadas'] ?></div>
+            <div class="metric-meta">Pendências de sanidade</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Usuários ativos</h3>
+            <div class="value"><?= (int) $usuarios['usuarios_ativos'] ?></div>
+            <div class="metric-meta"><?= (int) $usuarios['total_usuarios'] ?> usuários cadastrados</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Administradores</h3>
+            <div class="value"><?= (int) $usuarios['administradores'] ?></div>
+            <div class="metric-meta">Perfis com acesso administrativo</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Chamados abertos</h3>
+            <div class="value"><?= (int) $suporte['chamados_abertos'] ?></div>
+            <div class="metric-meta"><?= (int) $suporte['total_chamados'] ?> chamados no total</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Chamados hoje</h3>
+            <div class="value"><?= (int) $suporte['chamados_hoje'] ?></div>
+            <div class="metric-meta">Demandas abertas hoje</div>
+        </div>
+    </div>
+</section>
+
+<div class="grid-panels dashboard-grid">
+    <section class="panel">
+        <h2>Animais recentes</h2>
+        <p>Últimos cadastros de animais no backend.</p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brinco</th>
+                        <th>Nome</th>
+                        <th>Raça</th>
+                        <th>Sexo</th>
+                        <th>Lote</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($animaisRecentes)): ?>
+                        <tr>
+                            <td colspan="5">Nenhum animal cadastrado ainda.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($animaisRecentes as $animal): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($animal['brinco'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($animal['nome_apelido'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($animal['raca'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($animal['sexo'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($animal['lote'] ?: '-', ENT_QUOTES, 'UTF-8') ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Lançamentos recentes</h2>
+        <p>Movimentações mais novas do módulo financeiro.</p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Categoria</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($lancamentosRecentes)): ?>
+                        <tr>
+                            <td colspan="4">Nenhum lançamento financeiro encontrado.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($lancamentosRecentes as $lancamento): ?>
+                            <tr>
+                                <td><?= formatarData($lancamento['data_lancamento']) ?></td>
+                                <td><?= htmlspecialchars($lancamento['tipo'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($lancamento['categoria'] ?: '-', ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= formatarMoeda((float) $lancamento['valor']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Contas a pagar</h2>
+        <p>Próximos vencimentos e pendências financeiras.</p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Descrição</th>
+                        <th>Vencimento</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($contasProximas)): ?>
+                        <tr>
+                            <td colspan="4">Nenhuma conta cadastrada.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($contasProximas as $conta): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($conta['descricao'] ?: '-', ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= formatarData($conta['data_vencimento']) ?></td>
+                                <td><?= formatarMoeda((float) $conta['valor']) ?></td>
+                                <td>
+                                    <span class="badge <?= badgeConta((string) $conta['status'], (string) $conta['data_vencimento']) ?>">
+                                        <?= htmlspecialchars(ucfirst((string) $conta['status']), ENT_QUOTES, 'UTF-8') ?>
+                                    </span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Agenda sanitária</h2>
+        <p>Próximos eventos e situação dos registros sanitários.</p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Animal</th>
+                        <th>Tipo</th>
+                        <th>Próxima data</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($agendaSanitaria)): ?>
+                        <tr>
+                            <td colspan="4">Nenhum manejo sanitário cadastrado.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($agendaSanitaria as $registro): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($registro['nome_apelido'] . ' / ' . $registro['brinco'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($registro['tipo'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= formatarData($registro['proxima_data']) ?></td>
+                                <td>
+                                    <span class="badge <?= badgeSanitario((string) $registro['status'], $registro['proxima_data']) ?>">
+                                        <?= htmlspecialchars($registro['status'] ?: 'Pendente', ENT_QUOTES, 'UTF-8') ?>
+                                    </span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<?php layoutFim(); ?>
