@@ -81,6 +81,44 @@ function garantirEstruturaAnimais(PDO $pdo, string $banco): void
         $pdo->exec("ALTER TABLE animais ADD COLUMN prenha TINYINT(1) DEFAULT 0");
     }
 }
+
+function garantirEstruturaUsuarios(PDO $pdo, string $banco): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nome VARCHAR(150) NOT NULL,
+            email VARCHAR(150) NOT NULL UNIQUE,
+            perfil VARCHAR(50) NOT NULL,
+            senha_hash VARCHAR(255) NOT NULL,
+            ativo TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    if (!colunaExiste($pdo, 'usuarios', 'ativo', $banco)) {
+        $pdo->exec("ALTER TABLE usuarios ADD COLUMN ativo TINYINT(1) DEFAULT 1");
+    }
+}
+
+function garantirEstruturaSuporte(PDO $pdo, string $banco): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS suporte_chamados (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nome_contato VARCHAR(150) NOT NULL,
+            email_contato VARCHAR(150) NOT NULL,
+            assunto VARCHAR(150) NOT NULL,
+            mensagem TEXT NOT NULL,
+            status VARCHAR(50) NOT NULL DEFAULT 'Aberto',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    if (!colunaExiste($pdo, 'suporte_chamados', 'status', $banco)) {
+        $pdo->exec("ALTER TABLE suporte_chamados ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Aberto'");
+    }
+}
 try {
     $pdo = new PDO("mysql:host=$host;charset=utf8mb4", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -94,6 +132,8 @@ try {
     $pdoDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     garantirEstruturaAnimais($pdoDb, $dbname);
+    garantirEstruturaUsuarios($pdoDb, $dbname);
+    garantirEstruturaSuporte($pdoDb, $dbname);
 
     if (file_exists($seedPath) && trim(file_get_contents($seedPath)) !== '') {
         executarArquivoSql($pdoDb, $seedPath);
