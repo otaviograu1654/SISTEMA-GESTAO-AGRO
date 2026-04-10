@@ -140,6 +140,33 @@ body {
     font-size: 14px;
 }
 
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.dashboard-section {
+    margin-bottom: 28px;
+}
+
+.section-title {
+    margin-bottom: 14px;
+}
+
+.section-title h2 {
+    margin: 0;
+    font-size: 22px;
+    color: #1f7a3f;
+}
+
+.section-title p {
+    margin: 6px 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
 .cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -165,6 +192,40 @@ body {
     font-size: 30px;
     font-weight: bold;
     color: #1f7a3f;
+}
+
+.dashboard-cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.metric-card {
+    min-height: 148px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.metric-meta {
+    margin-top: 10px;
+    color: #667085;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.value-sm {
+    font-size: 24px !important;
+}
+
+.value-money {
+    font-size: 25px !important;
+}
+
+.value-positive {
+    color: #1f7a3f !important;
+}
+
+.value-negative {
+    color: #b42318 !important;
 }
 
 .panel h2 {
@@ -232,6 +293,10 @@ tr:hover {
     gap: 24px;
 }
 
+.dashboard-grid {
+    margin-top: 8px;
+}
+
 .badge {
     display: inline-block;
     padding: 6px 10px;
@@ -253,6 +318,37 @@ tr:hover {
 .badge-erro {
     background: #fdeaea;
     color: #b42318;
+}
+
+.mensagem {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.mensagem.sucesso,
+.mensagem.erro {
+    display: block;
+}
+
+.mensagem.sucesso {
+    background: #e7f6ec;
+    color: #1f7a3f;
+}
+
+.mensagem.erro {
+    background: #fdeaea;
+    color: #b42318;
+}
+
+.loading,
+.empty {
+    padding: 16px 0;
+    color: #666;
+    font-size: 14px;
 }
 
 form {
@@ -323,6 +419,10 @@ button[type="submit"]:hover {
     .grid-panels,
     form {
         grid-template-columns: 1fr;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
     }
 
     .form-group.full-width {
