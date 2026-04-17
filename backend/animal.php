@@ -1,5 +1,6 @@
 <?php
-require_once 'db.php';
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/layout.php';
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
@@ -47,7 +48,6 @@ try {
     ");
     $stmtCrias->execute([':id' => $id]);
     $totalCrias = (int) $stmtCrias->fetchColumn();
-
 } catch (PDOException $e) {
     die('Erro ao buscar animal: ' . $e->getMessage());
 }
@@ -66,6 +66,21 @@ function textoOuPadrao($valor, string $padrao = 'Não informado'): string
     return textoSeguro($valor);
 }
 
+function formatarDataDetalhe($data): string
+{
+    if ($data === null || $data === '') {
+        return 'Não informado';
+    }
+
+    $timestamp = strtotime((string) $data);
+
+    if ($timestamp === false) {
+        return textoSeguro($data);
+    }
+
+    return date('d/m/Y', $timestamp);
+}
+
 $prenhaTexto = ((int) ($animal['prenha'] ?? 0) === 1) ? 'Sim' : 'Não';
 
 $maeTexto = $animal['nome_mae']
@@ -75,239 +90,133 @@ $maeTexto = $animal['nome_mae']
 $paiTexto = $animal['nome_pai']
     ? textoSeguro($animal['nome_pai']) . ' (Brinco ' . textoSeguro($animal['brinco_pai']) . ')'
     : 'Não informado';
+
+layoutInicio('Detalhes do animal');
 ?>
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes do Animal</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            color: #222;
-        }
+<style>
+    .animal-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
 
-        .header {
-            background: linear-gradient(135deg, #1f7a3f, #2fa35a);
-            color: white;
-            padding: 24px;
-        }
+    .info-list {
+        display: grid;
+        gap: 12px;
+    }
 
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-        }
+    .info-item {
+        border-bottom: 1px solid #ececec;
+        padding-bottom: 10px;
+    }
 
-        .header p {
-            margin: 8px 0 0;
-            opacity: 0.95;
-        }
+    .info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
 
-        .container {
-            max-width: 1100px;
-            margin: 24px auto;
-            padding: 0 16px;
-        }
+    .info-label {
+        display: block;
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 4px;
+    }
 
-        .top-actions {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
+    .info-value {
+        font-size: 16px;
+        font-weight: bold;
+        color: #222;
+    }
+</style>
 
-        .btn {
-            display: inline-block;
-            padding: 10px 14px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-        }
+<div class="page-header">
+    <h1>Detalhes do animal</h1>
+    <p>Visualize os dados de identificação, genealogia e reprodução do animal cadastrado.</p>
+</div>
 
-        .btn-primary {
-            background: #1f7a3f;
-            color: white;
-        }
-                .btn-secondary {
-            background: white;
-            color: #1f7a3f;
-            border: 1px solid #d8e3db;
-        }
+<div class="top-actions">
+    <a href="animais.php" class="btn-link">← Voltar</a>
+    <a href="editar_animal.php?id=<?= (int) $animal['id'] ?>" class="btn-link">Editar animal</a>
+</div>
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
+<div class="animal-grid">
+    <section class="panel">
+        <h2>Identificação</h2>
 
-        .card {
-            background: white;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-        }
+        <div class="info-list">
+            <div class="info-item">
+                <span class="info-label">Brinco</span>
+                <span class="info-value"><?= textoSeguro($animal['brinco']) ?></span>
+            </div>
 
-        .card h2 {
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 20px;
-            color: #1f7a3f;
-        }
+            <div class="info-item">
+                <span class="info-label">Nome / Apelido</span>
+                <span class="info-value"><?= textoSeguro($animal['nome_apelido']) ?></span>
+            </div>
 
-        .info-list {
-            display: grid;
-            gap: 12px;
-        }
+            <div class="info-item">
+                <span class="info-label">Raça</span>
+                <span class="info-value"><?= textoSeguro($animal['raca']) ?></span>
+            </div>
 
-        .info-item {
-            border-bottom: 1px solid #ececec;
-            padding-bottom: 10px;
-        }
+            <div class="info-item">
+                <span class="info-label">Sexo</span>
+                <span class="info-value"><?= textoSeguro($animal['sexo']) ?></span>
+            </div>
 
-        .label {
-            display: block;
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 4px;
-        }
+            <div class="info-item">
+                <span class="info-label">Nascimento</span>
+                <span class="info-value"><?= formatarDataDetalhe($animal['data_nascimento']) ?></span>
+            </div>
 
-        .value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #222;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 6px 10px;
-            border-radius: 999px;
-            background: #e7f6ec;
-            color: #1f7a3f;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .badge-nao {
-            background: #fdeaea;
-            color: #b42318;
-        }
-
-        .topbar {
-    display: flex;
-    align-items: center;
-    background: white;
-    padding: 12px 24px;
-    border-bottom: 1px solid #e5e7eb;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    position: sticky;
-    top: 0; z-index: 100; 
-        }
-
-        .topbar h2 {
-            margin: 0;
-            font-size: 28px;
-            color: #1f7a3f;
-        }
-
-        .topbar p {
-            margin: 6px 0 0;
-            color: #666;
-            font-size: 14px;
-        }
-
-    </style>
-</head>
-<body>
-
-    <header> <?php include __DIR__ . '/includes/header.php'; ?>
-    </header>
-        <?php include __DIR__ . '/includes/header.php'; ?>
-        <?php include __DIR__ . '/includes/menu.php'; ?>
-    <div class="container">
-        <div class="top-actions">
-            <a href="dashboard.php" class="btn btn-secondary">← Voltar</a>
-            <a href="editar_animal.php?id=<?= $animal['id'] ?>" class="btn btn-primary">Editar animal</a>
+            <div class="info-item">
+                <span class="info-label">Lote</span>
+                <span class="info-value"><?= textoOuPadrao($animal['lote']) ?></span>
+            </div>
         </div>
+    </section>
 
-        <div class="grid">
-            <div class="card">
-                <h2>Identificação</h2>
-                <div class="info-list">
-                    <div class="info-item">
-                        <span class="label">Brinco</span>
-                        <span class="value"><?= textoSeguro($animal['brinco']) ?></span>
-                    </div>
+    <section class="panel">
+        <h2>Genealogia</h2>
 
-                    <div class="info-item">
-                        <span class="label">Nome / Apelido</span>
-                        <span class="value"><?= textoSeguro($animal['nome_apelido']) ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Raça</span>
-                        <span class="value"><?= textoSeguro($animal['raca']) ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Sexo</span>
-                        <span class="value"><?= textoSeguro($animal['sexo']) ?></span>
-                    </div>
-                                        <div class="info-item">
-                        <span class="label">Nascimento</span>
-                        <span class="value"><?= textoOuPadrao($animal['data_nascimento']) ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Lote</span>
-                        <span class="value"><?= textoOuPadrao($animal['lote']) ?></span>
-                    </div>
-                </div>
+        <div class="info-list">
+            <div class="info-item">
+                <span class="info-label">Mãe</span>
+                <span class="info-value"><?= $maeTexto ?></span>
             </div>
 
-            <div class="card">
-                <h2>Genealogia</h2>
-                <div class="info-list">
-                    <div class="info-item">
-                        <span class="label">Mãe</span>
-                        <span class="value"><?= $maeTexto ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Pai</span>
-                        <span class="value"><?= $paiTexto ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Número de crias</span>
-                        <span class="value"><?= $totalCrias ?></span>
-                    </div>
-                </div>
+            <div class="info-item">
+                <span class="info-label">Pai</span>
+                <span class="info-value"><?= $paiTexto ?></span>
             </div>
 
-            <div class="card">
-                <h2>Reprodução</h2>
-                <div class="info-list">
-                    <div class="info-item">
-                        <span class="label">Último cio</span>
-                        <span class="value"><?= textoOuPadrao($animal['data_ultimo_cio']) ?></span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="label">Prenha</span>
-                        <span class="value">
-                            <span class="badge <?= $prenhaTexto === 'Sim' ? '' : 'badge-nao' ?>">
-                                <?= $prenhaTexto ?>
-                            </span>
-                        </span>
-                    </div>
-                </div>
+            <div class="info-item">
+                <span class="info-label">Número de crias</span>
+                <span class="info-value"><?= $totalCrias ?></span>
             </div>
-                                
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Reprodução</h2>
+
+        <div class="info-list">
+            <div class="info-item">
+                <span class="info-label">Último cio</span>
+                <span class="info-value"><?= formatarDataDetalhe($animal['data_ultimo_cio']) ?></span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Prenha</span>
+                <span class="info-value">
+                    <span class="badge <?= $prenhaTexto === 'Sim' ? 'badge-sucesso' : 'badge-erro' ?>">
+                        <?= $prenhaTexto ?>
+                    </span>
+                </span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<?php layoutFim(); ?>

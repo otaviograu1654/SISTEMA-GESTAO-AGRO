@@ -6,6 +6,13 @@ function estaAtiva(array $paginas, string $paginaAtual): bool
     return in_array($paginaAtual, $paginas, true);
 }
 
+$paginasAnimais = [
+    'animais.php',
+    'animal.php',
+    'cadastro_animal.php',
+    'editar_animal.php',
+];
+
 $paginasMovimentacao = [
     'pesagens.php',
     'vacinacao.php',
@@ -16,6 +23,8 @@ $paginasFinanceiro = [
     'compras.php',
     'vendas.php',
     'lancamentos_vista.php',
+    'contas_a_pagar.php',
+    'fluxo_caixa.php',
 ];
 
 $paginasConfiguracoes = [
@@ -29,10 +38,9 @@ $configuracoesAberto = estaAtiva($paginasConfiguracoes, $paginaAtual);
 
 <aside class="sidebar">
     <nav class="menu">
-
         <div class="menu-title">Principal</div>
 
-        <a href="animais.php" class="<?= $paginaAtual === 'animais.php' ? 'active' : '' ?>">
+        <a href="animais.php" class="<?= estaAtiva($paginasAnimais, $paginaAtual) ? 'active' : '' ?>">
             <i class="fa-solid fa-cow"></i>
             <span>Animais</span>
         </a>
@@ -89,6 +97,8 @@ $configuracoesAberto = estaAtiva($paginasConfiguracoes, $paginaAtual);
                 <li><a href="compras.php" class="<?= $paginaAtual === 'compras.php' ? 'active' : '' ?>">Compras</a></li>
                 <li><a href="vendas.php" class="<?= $paginaAtual === 'vendas.php' ? 'active' : '' ?>">Vendas</a></li>
                 <li><a href="lancamentos_vista.php" class="<?= $paginaAtual === 'lancamentos_vista.php' ? 'active' : '' ?>">Lançamentos à vista</a></li>
+                <li><a href="contas_a_pagar.php" class="<?= $paginaAtual === 'contas_a_pagar.php' ? 'active' : '' ?>">Contas a pagar</a></li>
+                <li><a href="fluxo_caixa.php" class="<?= $paginaAtual === 'fluxo_caixa.php' ? 'active' : '' ?>">Fluxo de caixa</a></li>
             </ul>
         </div>
 
@@ -109,6 +119,5 @@ $configuracoesAberto = estaAtiva($paginasConfiguracoes, $paginaAtual);
                 <li><a href="usuarios.php" class="<?= $paginaAtual === 'usuarios.php' ? 'active' : '' ?>">Usuários</a></li>
             </ul>
         </div>
-
     </nav>
 </aside>

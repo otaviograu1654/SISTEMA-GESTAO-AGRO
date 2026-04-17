@@ -1,0 +1,21 @@
+#PADRONIZAÇÃO DE FIM DE LINHA
+* text=auto eol=lf
+
+#ARQUIVOS DE CODIGO
+*.php text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+
+#ARQUIVOS WINDOWS
+*.bat text eol=crlf
+
+#IMAGENS
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+
+#BANCO DE DADOS 
+*.sql text eol=lf
