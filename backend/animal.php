@@ -94,42 +94,6 @@ $paiTexto = $animal['nome_pai']
 layoutInicio('Detalhes do animal');
 ?>
 
-<style>
-    .animal-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-    }
-
-    .info-list {
-        display: grid;
-        gap: 12px;
-    }
-
-    .info-item {
-        border-bottom: 1px solid #ececec;
-        padding-bottom: 10px;
-    }
-
-    .info-item:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
-
-    .info-label {
-        display: block;
-        font-size: 13px;
-        color: #666;
-        margin-bottom: 4px;
-    }
-
-    .info-value {
-        font-size: 16px;
-        font-weight: bold;
-        color: #222;
-    }
-</style>
-
 <div class="page-header">
     <h1>Detalhes do animal</h1>
     <p>Visualize os dados de identificação, genealogia e reprodução do animal cadastrado.</p>
@@ -140,7 +104,7 @@ layoutInicio('Detalhes do animal');
     <a href="editar_animal.php?id=<?= (int) $animal['id'] ?>" class="btn-link">Editar animal</a>
 </div>
 
-<div class="animal-grid">
+<div class="grid-3-auto">
     <section class="panel">
         <h2>Identificação</h2>
 

@@ -80,6 +80,32 @@ function garantirEstruturaAnimais(PDO $pdo, string $banco): void
     if (!colunaExiste($pdo, 'animais', 'prenha', $banco)) {
         $pdo->exec("ALTER TABLE animais ADD COLUMN prenha TINYINT(1) DEFAULT 0");
     }
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS animal_historico_reprodutivo (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            animal_id INT NOT NULL,
+            data_evento DATE NOT NULL,
+            tipo_evento VARCHAR(100) NOT NULL,
+            observacao VARCHAR(255),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (animal_id) REFERENCES animais(id)
+        )
+    ");
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS animal_alteracoes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            animal_id INT NULL,
+            brinco_referencia VARCHAR(50),
+            nome_referencia VARCHAR(100),
+            tipo_alteracao VARCHAR(50) NOT NULL,
+            descricao VARCHAR(255) NOT NULL,
+            detalhes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (animal_id) REFERENCES animais(id)
+        )
+    ");
 }
 
 function garantirEstruturaUsuarios(PDO $pdo, string $banco): void

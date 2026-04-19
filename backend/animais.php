@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/animal_auditoria.php';
+
+garantirEstruturaAuditoriaAnimal($pdo);
 
 function responder($dados, int $status = 200): void
 {
@@ -75,13 +78,13 @@ if (requisicaoJson()) {
             }
 
             $brinco = trim($entrada['brinco'] ?? '');
-            $nome_apelido = trim($entrada['nome_apelido'] ?? '');
+            $nomeApelido = trim($entrada['nome_apelido'] ?? '');
             $raca = trim($entrada['raca'] ?? '');
             $sexo = trim($entrada['sexo'] ?? '');
-            $data_nascimento = trim($entrada['data_nascimento'] ?? '');
+            $dataNascimento = trim($entrada['data_nascimento'] ?? '');
             $lote = trim($entrada['lote'] ?? '');
 
-            if ($brinco === '' || $nome_apelido === '' || $raca === '' || $sexo === '') {
+            if ($brinco === '' || $nomeApelido === '' || $raca === '' || $sexo === '') {
                 responder([
                     'erro' => 'Campos obrigatórios: brinco, nome_apelido, raca e sexo.'
                 ], 400);
@@ -94,16 +97,32 @@ if (requisicaoJson()) {
 
             $stmt->execute([
                 ':brinco' => $brinco,
-                ':nome_apelido' => $nome_apelido,
+                ':nome_apelido' => $nomeApelido,
                 ':raca' => $raca,
                 ':sexo' => $sexo,
-                ':data_nascimento' => $data_nascimento !== '' ? $data_nascimento : null,
+                ':data_nascimento' => $dataNascimento !== '' ? $dataNascimento : null,
                 ':lote' => $lote !== '' ? $lote : null,
             ]);
 
+            $novoId = (int) $pdo->lastInsertId();
+
+            registrarAlteracaoAnimal(
+                $pdo,
+                $novoId,
+                $brinco,
+                $nomeApelido,
+                'cadastro',
+                'Animal cadastrado via endpoint de animais.',
+                [
+                    'raca' => $raca,
+                    'sexo' => $sexo,
+                    'lote' => $lote !== '' ? $lote : null,
+                ]
+            );
+
             responder([
                 'mensagem' => 'Animal cadastrado com sucesso.',
-                'id' => $pdo->lastInsertId()
+                'id' => $novoId
             ], 201);
         }
 
@@ -133,6 +152,7 @@ require_once __DIR__ . '/includes/layout.php';
 
 $erroPagina = '';
 $animais = [];
+$ultimasAlteracoes = [];
 $resumo = [
     'total' => 0,
     'machos' => 0,
@@ -159,6 +179,21 @@ try {
             $resumo['prenhas']++;
         }
     }
+
+    $stmtAlteracoes = $pdo->query("
+        SELECT
+            id,
+            animal_id,
+            brinco_referencia,
+            nome_referencia,
+            tipo_alteracao,
+            descricao,
+            created_at
+        FROM animal_alteracoes
+        ORDER BY id DESC
+        LIMIT 8
+    ");
+    $ultimasAlteracoes = $stmtAlteracoes->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $erroPagina = 'Não foi possível carregar os animais cadastrados.';
 }
@@ -179,6 +214,12 @@ layoutInicio('Animais');
 <?php if ($erroPagina !== ''): ?>
     <div class="mensagem erro" style="display: block; margin-bottom: 16px;">
         <?= htmlspecialchars($erroPagina, ENT_QUOTES, 'UTF-8') ?>
+    </div>
+<?php endif; ?>
+
+<?php if (($_GET['status'] ?? '') === 'animal_excluido'): ?>
+    <div class="mensagem sucesso" style="display: block; margin-bottom: 16px;">
+        Animal excluído com sucesso.
     </div>
 <?php endif; ?>
 
@@ -286,6 +327,35 @@ layoutInicio('Animais');
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="card" style="margin-top: 20px; box-shadow: none; border: 1px solid #edf2ee;">
+            <h3 style="margin-bottom: 8px;">Últimas alterações</h3>
+            <p style="margin-top: 0;">Controle recente de cadastros, edições, exclusões e histórico de reprodução.</p>
+
+            <?php if (empty($ultimasAlteracoes)): ?>
+                <div class="empty">Nenhuma alteração registrada ainda.</div>
+            <?php else: ?>
+                <div class="info-list">
+                    <?php foreach ($ultimasAlteracoes as $alteracao): ?>
+                        <div class="info-item">
+                            <span class="info-label"><?= formatarDataHoraAlteracao($alteracao['created_at']) ?></span>
+                            <span class="info-value" style="font-size: 15px;">
+                                <?= htmlspecialchars($alteracao['nome_referencia'] ?: 'Animal sem nome', ENT_QUOTES, 'UTF-8') ?>
+                                / brinco <?= htmlspecialchars($alteracao['brinco_referencia'] ?: '-', ENT_QUOTES, 'UTF-8') ?>
+                            </span>
+                            <div style="margin-top: 6px; color: #555; font-size: 14px;">
+                                <?= htmlspecialchars($alteracao['descricao'], ENT_QUOTES, 'UTF-8') ?>
+                            </div>
+                            <?php if (!empty($alteracao['animal_id'])): ?>
+                                <div style="margin-top: 8px;">
+                                    <a href="animal.php?id=<?= (int) $alteracao['animal_id'] ?>" class="btn-link">Abrir animal</a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
 </div>

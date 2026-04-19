@@ -143,7 +143,10 @@ layoutInicio('Fluxo de caixa');
         color: #1f7a3f;
     }
 
-    .card-resumo .valor.saida,
+    .card-resumo .valor.saida {
+        color: #b42318;
+    }
+
     .card-resumo .valor.saldo-negativo {
         color: #b42318;
     }
@@ -167,6 +170,10 @@ layoutInicio('Fluxo de caixa');
 
     .btn-secundario:hover {
         background: #e7f6ec;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
     }
 
     .tipo-badge {

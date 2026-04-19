@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/animal_auditoria.php';
 require_once __DIR__ . '/includes/layout.php';
+
+garantirEstruturaAuditoriaAnimal($pdo);
 
 $erro = '';
 $loteCookie = $_COOKIE['sga_lote_padrao'] ?? '';
@@ -104,6 +107,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             $novoId = $pdo->lastInsertId();
+
+            registrarAlteracaoAnimal(
+                $pdo,
+                (int) $novoId,
+                $brinco,
+                $nome_apelido,
+                'cadastro',
+                'Animal cadastrado no sistema.',
+                [
+                    'raca' => $raca,
+                    'sexo' => $sexo,
+                    'lote' => $lote !== '' ? $lote : null,
+                ]
+            );
+
             header('Location: animal.php?id=' . $novoId);
             exit;
         } catch (PDOException $e) {

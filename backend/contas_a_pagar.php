@@ -15,34 +15,6 @@ try {
 layoutInicio('Contas a pagar');
 ?>
 
-<style>
-    .conta-prioridade-baixa {
-        background: #e7f6ec;
-        color: #1f7a3f;
-    }
-
-    .conta-prioridade-media {
-        background: #fef0c7;
-        color: #b54708;
-    }
-
-    .conta-prioridade-alta {
-        background: #fdeaea;
-        color: #b42318;
-    }
-
-    .acoes-conta {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .valor-conta {
-        color: #b42318;
-        font-weight: bold;
-    }
-</style>
-
 <div class="page-header">
     <h1>Contas a pagar</h1>
     <p>Gestão de contas, vencimentos e prioridades financeiras da fazenda.</p>
