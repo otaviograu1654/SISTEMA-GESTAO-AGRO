@@ -189,7 +189,7 @@ layoutInicio('Pesagens');
         <p>Informe o animal, a data e o peso medido.</p>
 
         <?php if ($erroPagina !== ''): ?>
-            <div class="mensagem erro" style="display: block; margin-bottom: 16px;">
+            <div class="mensagem erro mensagem-bloco">
                 <?= htmlspecialchars($erroPagina, ENT_QUOTES, 'UTF-8') ?>
             </div>
         <?php endif; ?>
@@ -236,7 +236,7 @@ layoutInicio('Pesagens');
 
         <div id="loading" class="loading">Carregando pesagens...</div>
 
-        <div class="table-wrapper" id="tableWrapper" style="display: none;">
+        <div class="table-wrapper hidden" id="tableWrapper">
             <table>
                 <thead>
                     <tr>
@@ -251,7 +251,7 @@ layoutInicio('Pesagens');
             </table>
         </div>
 
-        <div id="emptyState" class="empty" style="display: none;">
+        <div id="emptyState" class="empty hidden">
             Nenhuma pesagem cadastrada.
         </div>
     </section>

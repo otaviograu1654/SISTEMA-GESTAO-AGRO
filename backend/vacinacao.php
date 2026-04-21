@@ -51,7 +51,7 @@ layoutInicio('Vacinação');
         <p>Informe o animal, a vacina aplicada e a próxima data prevista.</p>
 
         <?php if ($erroPagina !== ''): ?>
-            <div class="mensagem erro" style="display: block; margin-bottom: 16px;">
+            <div class="mensagem erro mensagem-bloco">
                 <?= htmlspecialchars($erroPagina, ENT_QUOTES, 'UTF-8') ?>
             </div>
         <?php endif; ?>
@@ -107,7 +107,7 @@ layoutInicio('Vacinação');
 
         <div id="loading" class="loading">Carregando vacinações...</div>
 
-        <div class="table-wrapper" id="tableWrapper" style="display: none;">
+        <div class="table-wrapper hidden" id="tableWrapper">
             <table>
                 <thead>
                     <tr>
@@ -123,7 +123,7 @@ layoutInicio('Vacinação');
             </table>
         </div>
 
-        <div id="emptyState" class="empty" style="display: none;">
+        <div id="emptyState" class="empty hidden">
             Nenhuma vacinação cadastrada.
         </div>
     </section>

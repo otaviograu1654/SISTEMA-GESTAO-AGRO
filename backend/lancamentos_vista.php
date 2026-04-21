@@ -1,4 +1,6 @@
+<!--PAGINA E PARA MOVIMENTAÇÃO IMEDIATA-->
 <?php
+//PAGINA E PARA MOVIMENTAÇÃO IMEDIATA
 require_once __DIR__ . '/includes/layout.php';
 layoutInicio('Lançamentos à vista');
 ?>
@@ -79,7 +81,7 @@ layoutInicio('Lançamentos à vista');
 
         <div id="loading" class="loading">Carregando lançamentos...</div>
 
-        <div class="table-wrapper" id="tableWrapper" style="display: none;">
+        <div class="table-wrapper hidden" id="tableWrapper">
             <table>
                 <thead>
                     <tr>
@@ -94,7 +96,7 @@ layoutInicio('Lançamentos à vista');
             </table>
         </div>
 
-        <div id="emptyState" class="empty" style="display: none;">
+        <div id="emptyState" class="empty hidden">
             Nenhum lançamento à vista cadastrado.
         </div>
     </section>

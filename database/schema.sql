@@ -16,9 +16,42 @@ CREATE TABLE IF NOT EXISTS animais (
     pai_id INT NULL,
     data_ultimo_cio DATE NULL,
     prenha TINYINT(1) DEFAULT 0,
+    status VARCHAR(20) NOT NULL DEFAULT 'Ativo',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (mae_id) REFERENCES animais(id),
     FOREIGN KEY (pai_id) REFERENCES animais(id)
+);
+
+CREATE TABLE IF NOT EXISTS animal_alteracoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    animal_id INT NULL,
+    brinco_referencia VARCHAR(50),
+    nome_referencia VARCHAR(100),
+    tipo_alteracao VARCHAR(50) NOT NULL,
+    descricao VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (animal_id) REFERENCES animais(id)
+);
+
+CREATE TABLE IF NOT EXISTS animal_vendas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    animal_id INT NOT NULL,
+    comprador_nome VARCHAR(150) NOT NULL,
+    data_venda DATE NOT NULL,
+    valor DECIMAL(10,2) NULL,
+    observacao VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (animal_id) REFERENCES animais(id)
+);
+
+CREATE TABLE IF NOT EXISTS animal_obitos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    animal_id INT NOT NULL,
+    data_obito DATE NOT NULL,
+    causa VARCHAR(150),
+    observacao VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (animal_id) REFERENCES animais(id)
 );
 
 CREATE TABLE IF NOT EXISTS pesagens (

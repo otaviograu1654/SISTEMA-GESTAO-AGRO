@@ -63,7 +63,7 @@ layoutInicio('Plano de contas');
 </div>
 
 <?php if ($erroPagina !== ''): ?>
-    <div class="mensagem erro" style="display: block; margin-bottom: 16px;">
+    <div class="mensagem erro mensagem-bloco">
         <?= htmlspecialchars($erroPagina, ENT_QUOTES, 'UTF-8') ?>
     </div>
 <?php endif; ?>

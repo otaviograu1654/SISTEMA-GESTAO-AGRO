@@ -1,4 +1,6 @@
+<!--PAGINA E SO UM RELATORIO -->
 <?php
+//PAGINA E SO UM RELATORIO
 require_once __DIR__ . '/includes/layout.php';
 
 $movimentacoes = [
@@ -94,67 +96,57 @@ $saldoFinal = $totalEntradas - $totalSaidas;
 
 layoutInicio('Fluxo de caixa');
 ?>
-
 <style>
-    .page-header {
+    .fluxo-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         gap: 16px;
-        margin-bottom: 24px;
         flex-wrap: wrap;
     }
 
-    .page-header h1 {
-        margin: 0 0 6px;
-        font-size: 28px;
-        color: #1f7a3f;
-    }
-
-    .page-header p {
-        margin: 0;
-        color: #666;
+    .fluxo-header p {
         max-width: 760px;
     }
 
-    .grid-resumo {
+    .fluxo-resumo {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 16px;
         margin-bottom: 24px;
     }
 
-    .card-resumo {
+    .fluxo-resumo .card-resumo {
         background: white;
         border-radius: 14px;
         padding: 18px;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
     }
 
-    .card-resumo .label {
+    .fluxo-resumo .label {
         font-size: 13px;
         color: #666;
         margin-bottom: 8px;
     }
 
-    .card-resumo .valor {
+    .fluxo-resumo .valor {
         font-size: 28px;
         font-weight: bold;
         color: #1f7a3f;
     }
 
-    .card-resumo .valor.saida,
-    .card-resumo .valor.saldo-negativo {
+    .fluxo-resumo .valor.saida,
+    .fluxo-resumo .valor.saldo-negativo {
         color: #b42318;
     }
 
-    .acoes-topo {
+    .fluxo-acoes {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
     }
 
-    .btn-secundario {
+    .fluxo-acoes .btn-secundario {
         display: inline-block;
         padding: 10px 14px;
         border-radius: 10px;
@@ -165,84 +157,59 @@ layoutInicio('Fluxo de caixa');
         background: white;
     }
 
-    .btn-secundario:hover {
+    .fluxo-acoes .btn-secundario:hover {
         background: #e7f6ec;
     }
 
-    .tipo-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 84px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: bold;
-    }
-
-    .tipo-entrada {
-        background: #e7f6ec;
-        color: #1f7a3f;
-    }
-
-    .tipo-saida {
-        background: #fdeaea;
-        color: #b42318;
-    }
-
-    .valor-entrada {
-        color: #1f7a3f;
-        font-weight: bold;
-    }
-
-    .valor-saida {
-        color: #b42318;
-        font-weight: bold;
-    }
-
-    .resumo-grid-secundario {
+    .fluxo-resumo-secundario {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 16px;
     }
 
-    .resumo-item {
+    .fluxo-resumo-secundario .resumo-item {
         border: 1px solid #edf2ee;
         border-radius: 12px;
         padding: 14px 16px;
         background: #fafcfb;
     }
 
-    .resumo-item strong {
+    .fluxo-resumo-secundario .resumo-item strong {
         display: block;
         color: #444;
         font-size: 13px;
         margin-bottom: 6px;
     }
 
-    .resumo-item span {
+    .fluxo-resumo-secundario .resumo-item span {
         font-size: 22px;
         font-weight: bold;
         color: #1f7a3f;
     }
 
-    .resumo-item span.saida {
+    .fluxo-resumo-secundario .resumo-item span.saida {
         color: #b42318;
+    }
+
+    @media (max-width: 980px) {
+        .fluxo-header {
+            flex-direction: column;
+        }
     }
 </style>
 
-<div class="page-header">
+<div class="page-header split-header fluxo-header">
     <div>
         <h1>Fluxo de Caixa</h1>
         <p>Visão consolidada das entradas e saídas financeiras da fazenda, com saldo acumulado por movimentação para facilitar o acompanhamento do caixa.</p>
     </div>
 
-    <div class="acoes-topo">
+    <div class="acoes-topo fluxo-acoes">
         <a href="dashboard.php" class="btn-secundario">Voltar ao dashboard</a>
     </div>
 </div>
 
-<div class="grid-resumo">
+<div class="grid-resumo fluxo-resumo">
     <div class="card-resumo">
         <div class="label">Movimentações no período</div>
         <div class="valor"><?= $totalMovimentacoes ?></div>
@@ -340,7 +307,7 @@ layoutInicio('Fluxo de caixa');
 <section class="panel">
     <h2>Resumo do caixa</h2>
 
-    <div class="resumo-grid-secundario">
+    <div class="resumo-grid-secundario fluxo-resumo-secundario">
         <div class="resumo-item">
             <strong>Maior entrada individual</strong>
             <span><?= formatarMoeda($maiorEntrada) ?></span>
@@ -362,7 +329,7 @@ layoutInicio('Fluxo de caixa');
 
 <section class="panel">
     <h2>Histórico do fluxo de caixa</h2>
-    <p style="margin-top: -6px; color: #666;">Saldo acumulado após cada movimentação registrada no período.</p>
+    <p class="section-note">Saldo acumulado após cada movimentação registrada no período.</p>
 
     <div class="table-wrapper">
         <table>

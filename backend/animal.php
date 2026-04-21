@@ -1,6 +1,10 @@
 <?php
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/animal_auditoria.php';
 require_once __DIR__ . '/includes/layout.php';
+
+garantirStatusAnimal($pdo);
+garantirBaixasAnimal($pdo);
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
@@ -20,6 +24,7 @@ try {
             a.lote,
             a.data_ultimo_cio,
             a.prenha,
+            a.status,
             a.mae_id,
             a.pai_id,
             mae.nome_apelido AS nome_mae,
@@ -48,6 +53,26 @@ try {
     ");
     $stmtCrias->execute([':id' => $id]);
     $totalCrias = (int) $stmtCrias->fetchColumn();
+
+    $stmtVenda = $pdo->prepare("
+        SELECT *
+        FROM animal_vendas
+        WHERE animal_id = :id
+        ORDER BY data_venda DESC, id DESC
+        LIMIT 1
+    ");
+    $stmtVenda->execute([':id' => $id]);
+    $vendaAnimal = $stmtVenda->fetch(PDO::FETCH_ASSOC);
+
+    $stmtObito = $pdo->prepare("
+        SELECT *
+        FROM animal_obitos
+        WHERE animal_id = :id
+        ORDER BY data_obito DESC, id DESC
+        LIMIT 1
+    ");
+    $stmtObito->execute([':id' => $id]);
+    $obitoAnimal = $stmtObito->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die('Erro ao buscar animal: ' . $e->getMessage());
 }
@@ -82,6 +107,16 @@ function formatarDataDetalhe($data): string
 }
 
 $prenhaTexto = ((int) ($animal['prenha'] ?? 0) === 1) ? 'Sim' : 'Não';
+$statusAnimal = $animal['status'] ?? 'Ativo';
+$classeStatus = 'badge-sucesso';
+
+if ($statusAnimal === 'Vendido') {
+    $classeStatus = 'badge-alerta';
+}
+
+if ($statusAnimal === 'Óbito') {
+    $classeStatus = 'badge-erro';
+}
 
 $maeTexto = $animal['nome_mae']
     ? textoSeguro($animal['nome_mae']) . ' (Brinco ' . textoSeguro($animal['brinco_mae']) . ')'
@@ -93,42 +128,6 @@ $paiTexto = $animal['nome_pai']
 
 layoutInicio('Detalhes do animal');
 ?>
-
-<style>
-    .animal-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-    }
-
-    .info-list {
-        display: grid;
-        gap: 12px;
-    }
-
-    .info-item {
-        border-bottom: 1px solid #ececec;
-        padding-bottom: 10px;
-    }
-
-    .info-item:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
-
-    .info-label {
-        display: block;
-        font-size: 13px;
-        color: #666;
-        margin-bottom: 4px;
-    }
-
-    .info-value {
-        font-size: 16px;
-        font-weight: bold;
-        color: #222;
-    }
-</style>
 
 <div class="page-header">
     <h1>Detalhes do animal</h1>
@@ -174,6 +173,15 @@ layoutInicio('Detalhes do animal');
                 <span class="info-label">Lote</span>
                 <span class="info-value"><?= textoOuPadrao($animal['lote']) ?></span>
             </div>
+
+            <div class="info-item">
+                <span class="info-label">Situação</span>
+                <span class="info-value">
+                    <span class="badge <?= $classeStatus ?>">
+                        <?= textoSeguro($statusAnimal) ?>
+                    </span>
+                </span>
+            </div>
         </div>
     </section>
 
@@ -217,6 +225,55 @@ layoutInicio('Detalhes do animal');
             </div>
         </div>
     </section>
+
+    <?php if ($vendaAnimal || $obitoAnimal): ?>
+        <section class="panel">
+            <h2>Baixa do animal</h2>
+
+            <div class="info-list">
+                <?php if ($vendaAnimal): ?>
+                    <div class="info-item">
+                        <span class="info-label">Comprador</span>
+                        <span class="info-value"><?= textoSeguro($vendaAnimal['comprador_nome']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Data da venda</span>
+                        <span class="info-value"><?= formatarDataDetalhe($vendaAnimal['data_venda']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Valor</span>
+                        <span class="info-value">
+                            <?= $vendaAnimal['valor'] !== null ? 'R$ ' . number_format((float) $vendaAnimal['valor'], 2, ',', '.') : 'Não informado' ?>
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Observação</span>
+                        <span class="info-value"><?= textoOuPadrao($vendaAnimal['observacao']) ?></span>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($obitoAnimal): ?>
+                    <div class="info-item">
+                        <span class="info-label">Data do óbito</span>
+                        <span class="info-value"><?= formatarDataDetalhe($obitoAnimal['data_obito']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Causa</span>
+                        <span class="info-value"><?= textoOuPadrao($obitoAnimal['causa']) ?></span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Observação</span>
+                        <span class="info-value"><?= textoOuPadrao($obitoAnimal['observacao']) ?></span>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </section>
+    <?php endif; ?>
 </div>
 
 <?php layoutFim(); ?>

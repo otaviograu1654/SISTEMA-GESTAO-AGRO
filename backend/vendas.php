@@ -1,4 +1,6 @@
+<!-- ESSA PAGINA E PARA REGISTRAR VENDAS -->
 <?php
+//ESSA PAGINA E PARA REGISTRAR VENDAS
 require_once __DIR__ . '/includes/layout.php';
 layoutInicio('Vendas');
 ?>
@@ -70,7 +72,7 @@ layoutInicio('Vendas');
 
         <div id="loading" class="loading">Carregando vendas...</div>
 
-        <div class="table-wrapper" id="tableWrapper" style="display: none;">
+        <div class="table-wrapper hidden" id="tableWrapper">
             <table>
                 <thead>
                     <tr>
@@ -84,7 +86,7 @@ layoutInicio('Vendas');
             </table>
         </div>
 
-        <div id="emptyState" class="empty" style="display: none;">
+        <div id="emptyState" class="empty hidden">
             Nenhuma venda cadastrada.
         </div>
     </section>

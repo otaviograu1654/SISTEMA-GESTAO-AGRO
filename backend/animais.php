@@ -1,5 +1,9 @@
 <?php
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/animal_auditoria.php';
+
+garantirTabelaAuditoriaAnimal($pdo);
+garantirStatusAnimal($pdo);
 
 function responder($dados, int $status = 200): void
 {
@@ -36,10 +40,31 @@ function buscarAnimais(PDO $pdo): array
             data_nascimento,
             lote,
             prenha,
+            status,
             created_at
         FROM animais
         ORDER BY id DESC
     ");
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function buscarUltimasAlteracoes(PDO $pdo, int $limite = 8): array
+{
+    $stmt = $pdo->prepare("
+        SELECT
+            animal_id,
+            brinco_referencia,
+            nome_referencia,
+            tipo_alteracao,
+            descricao,
+            created_at
+        FROM animal_alteracoes
+        ORDER BY created_at DESC, id DESC
+        LIMIT :limite
+    ");
+    $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+    $stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -57,6 +82,19 @@ function formatarData(?string $data): string
     }
 
     return $partes[2] . '/' . $partes[1] . '/' . $partes[0];
+}
+
+function classeStatusAnimal($status): string
+{
+    if ($status === 'Vendido') {
+        return 'badge-alerta';
+    }
+
+    if ($status === 'Óbito') {
+        return 'badge-erro';
+    }
+
+    return 'badge-sucesso';
 }
 
 if (requisicaoJson()) {
@@ -133,6 +171,7 @@ require_once __DIR__ . '/includes/layout.php';
 
 $erroPagina = '';
 $animais = [];
+$ultimasAlteracoes = [];
 $resumo = [
     'total' => 0,
     'machos' => 0,
@@ -142,6 +181,7 @@ $resumo = [
 
 try {
     $animais = buscarAnimais($pdo);
+    $ultimasAlteracoes = buscarUltimasAlteracoes($pdo);
 
     foreach ($animais as $animal) {
         $sexo = mb_strtolower((string) ($animal['sexo'] ?? ''), 'UTF-8');
@@ -177,8 +217,14 @@ layoutInicio('Animais');
 </div>
 
 <?php if ($erroPagina !== ''): ?>
-    <div class="mensagem erro" style="display: block; margin-bottom: 16px;">
+    <div class="mensagem erro mensagem-bloco">
         <?= htmlspecialchars($erroPagina, ENT_QUOTES, 'UTF-8') ?>
+    </div>
+<?php endif; ?>
+
+<?php if (($_GET['excluido'] ?? '') === '1'): ?>
+    <div class="mensagem sucesso mensagem-bloco">
+        Animal excluído com sucesso.
     </div>
 <?php endif; ?>
 
@@ -201,14 +247,24 @@ layoutInicio('Animais');
     </div>
 </div>
 
-<div class="grid-panels">
+<div class="panel-spaced">
     <section class="panel">
         <h2>Rebanho cadastrado</h2>
         <p>Use a busca para encontrar rapidamente por brinco, nome, raça, lote ou sexo.</p>
 
-        <div class="form-group" style="margin-bottom: 16px;">
+        <div class="form-group busca-animais">
             <label for="buscaAnimais">Buscar animal</label>
             <input type="text" id="buscaAnimais" placeholder="Ex: 4052, Estrela, Nelore, lote A...">
+        </div>
+
+        <div class="form-group busca-animais">
+            <label for="filtroStatusAnimais">Filtrar por status</label>
+            <select id="filtroStatusAnimais">
+                <option value="">Todos</option>
+                <option value="ativo">Ativo</option>
+                <option value="vendido">Vendido</option>
+                <option value="óbito">Óbito</option>
+            </select>
         </div>
 
         <div class="table-wrapper">
@@ -220,6 +276,7 @@ layoutInicio('Animais');
                         <th>Raça</th>
                         <th>Sexo</th>
                         <th>Lote</th>
+                        <th>Status</th>
                         <th>Nascimento</th>
                         <th>Ações</th>
                     </tr>
@@ -227,16 +284,25 @@ layoutInicio('Animais');
                 <tbody id="tabelaAnimais">
                     <?php if (empty($animais)): ?>
                         <tr>
-                            <td colspan="7">Nenhum animal cadastrado ainda.</td>
+                            <td colspan="8">Nenhum animal cadastrado ainda.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($animais as $animal): ?>
-                            <tr data-animal-texto="<?= htmlspecialchars(mb_strtolower(trim(($animal['brinco'] ?? '') . ' ' . ($animal['nome_apelido'] ?? '') . ' ' . ($animal['raca'] ?? '') . ' ' . ($animal['lote'] ?? '') . ' ' . ($animal['sexo'] ?? '')), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>">
+                            <?php $statusLinha = $animal['status'] ?: 'Ativo'; ?>
+                            <tr
+                                data-animal-texto="<?= htmlspecialchars(mb_strtolower(trim(($animal['brinco'] ?? '') . ' ' . ($animal['nome_apelido'] ?? '') . ' ' . ($animal['raca'] ?? '') . ' ' . ($animal['lote'] ?? '') . ' ' . ($animal['sexo'] ?? '') . ' ' . $statusLinha), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>"
+                                data-animal-status="<?= htmlspecialchars(mb_strtolower($statusLinha, 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>"
+                            >
                                 <td><?= htmlspecialchars($animal['brinco'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($animal['nome_apelido'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($animal['raca'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($animal['sexo'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($animal['lote'] ?: '-', ENT_QUOTES, 'UTF-8') ?></td>
+                                <td>
+                                    <span class="badge <?= classeStatusAnimal($statusLinha) ?>">
+                                        <?= htmlspecialchars($statusLinha, ENT_QUOTES, 'UTF-8') ?>
+                                    </span>
+                                </td>
                                 <td><?= formatarData($animal['data_nascimento']) ?></td>
                                 <td>
                                     <a href="animal.php?id=<?= (int) $animal['id'] ?>" class="btn-link">Ver detalhes</a>
@@ -248,42 +314,51 @@ layoutInicio('Animais');
             </table>
         </div>
 
-        <div id="semResultado" class="empty" style="display: none;">
+        <div id="semResultado" class="empty hidden">
             Nenhum animal encontrado para a busca informada.
         </div>
     </section>
 
-    <section class="panel">
-        <h2>Resumo rápido</h2>
-        <p>Atalhos úteis para continuar o fluxo de cadastro e acompanhamento do rebanho.</p>
-
-        <div class="top-actions" style="margin-bottom: 18px;">
-            <a class="btn-link" href="cadastro_animal.php">Cadastrar animal</a>
-            <a class="btn-link" href="pesagens.php">Abrir pesagens</a>
-            <a class="btn-link" href="vacinacao.php">Abrir vacinação</a>
-        </div>
+    <section class="panel panel-spaced">
+        <h2>Últimas alterações</h2>
+        <p>Alterações recentes feitas no cadastro dos animais.</p>
 
         <div class="table-wrapper">
             <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Animal</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <tr>
-                        <th>Total cadastrado</th>
-                        <td><?= $resumo['total'] ?> animal(is)</td>
-                    </tr>
-                    <tr>
-                        <th>Distribuição por sexo</th>
-                        <td><?= $resumo['machos'] ?> macho(s) e <?= $resumo['femeas'] ?> fêmea(s)</td>
-                    </tr>
-                    <tr>
-                        <th>Fêmeas prenhas</th>
-                        <td><?= $resumo['prenhas'] ?> registro(s)</td>
-                    </tr>
-                    <tr>
-                        <th>Último cadastro</th>
-                        <td>
-                            <?= !empty($animais) ? htmlspecialchars(($animais[0]['nome_apelido'] ?: 'Sem nome') . ' / brinco ' . ($animais[0]['brinco'] ?: '-'), ENT_QUOTES, 'UTF-8') : 'Nenhum animal cadastrado' ?>
-                        </td>
-                    </tr>
+                    <?php if (empty($ultimasAlteracoes)): ?>
+                        <tr>
+                            <td colspan="4">Nenhuma alteração registrada ainda.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($ultimasAlteracoes as $alteracao): ?>
+                            <tr>
+                                <td><?= htmlspecialchars(formatarDataHoraAuditoria($alteracao['created_at']), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td>
+                                    <?php
+                                    $referenciaAnimal = trim((string) (($alteracao['nome_referencia'] ?? '') . ' / brinco ' . ($alteracao['brinco_referencia'] ?? '-')));
+                                    ?>
+                                    <?php if (!empty($alteracao['animal_id'])): ?>
+                                        <a href="animal.php?id=<?= (int) $alteracao['animal_id'] ?>" class="btn-link">
+                                            <?= htmlspecialchars($referenciaAnimal, ENT_QUOTES, 'UTF-8') ?>
+                                        </a>
+                                    <?php else: ?>
+                                        <?= htmlspecialchars($referenciaAnimal, ENT_QUOTES, 'UTF-8') ?>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?= htmlspecialchars(ucfirst((string) $alteracao['tipo_alteracao']), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($alteracao['descricao'], ENT_QUOTES, 'UTF-8') ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -300,29 +375,40 @@ layoutInicio('Animais');
     }
 
     const buscaAnimais = document.getElementById('buscaAnimais');
+    const filtroStatusAnimais = document.getElementById('filtroStatusAnimais');
     const linhasAnimais = Array.from(document.querySelectorAll('#tabelaAnimais tr[data-animal-texto]'));
     const semResultado = document.getElementById('semResultado');
 
-    if (buscaAnimais) {
-        buscaAnimais.addEventListener('input', function () {
-            const termo = normalizarTexto(buscaAnimais.value.trim());
-            let visiveis = 0;
+    function filtrarAnimais() {
+        const termo = buscaAnimais ? normalizarTexto(buscaAnimais.value.trim()) : '';
+        const status = filtroStatusAnimais ? normalizarTexto(filtroStatusAnimais.value) : '';
+        let visiveis = 0;
 
-            linhasAnimais.forEach(function (linha) {
-                const texto = linha.getAttribute('data-animal-texto') || '';
-                const mostrar = termo === '' || texto.includes(termo);
+        linhasAnimais.forEach(function (linha) {
+            const texto = linha.getAttribute('data-animal-texto') || '';
+            const statusLinha = normalizarTexto(linha.getAttribute('data-animal-status') || '');
+            const bateTexto = termo === '' || texto.includes(termo);
+            const bateStatus = status === '' || statusLinha === status;
+            const mostrar = bateTexto && bateStatus;
 
-                linha.style.display = mostrar ? '' : 'none';
+            linha.style.display = mostrar ? '' : 'none';
 
-                if (mostrar) {
-                    visiveis++;
-                }
-            });
-
-            if (semResultado) {
-                semResultado.style.display = (linhasAnimais.length > 0 && visiveis === 0) ? 'block' : 'none';
+            if (mostrar) {
+                visiveis++;
             }
         });
+
+        if (semResultado) {
+            semResultado.style.display = (linhasAnimais.length > 0 && visiveis === 0) ? 'block' : 'none';
+        }
+    }
+
+    if (buscaAnimais) {
+        buscaAnimais.addEventListener('input', filtrarAnimais);
+    }
+
+    if (filtroStatusAnimais) {
+        filtroStatusAnimais.addEventListener('change', filtrarAnimais);
     }
 </script>
 

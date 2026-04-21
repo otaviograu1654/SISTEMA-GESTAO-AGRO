@@ -1,4 +1,6 @@
+<!--PAGINA SERVE SO PARA REGISTRAR PENDENCIAS -->
 <?php
+//PAGINA SERVE SO PARA REGISTRAR PENDENCIAS
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/layout.php';
 
@@ -15,42 +17,32 @@ try {
 layoutInicio('Contas a pagar');
 ?>
 
-<style>
-    .conta-prioridade-baixa {
-        background: #e7f6ec;
-        color: #1f7a3f;
-    }
-
-    .conta-prioridade-media {
-        background: #fef0c7;
-        color: #b54708;
-    }
-
-    .conta-prioridade-alta {
-        background: #fdeaea;
-        color: #b42318;
-    }
-
-    .acoes-conta {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .valor-conta {
-        color: #b42318;
-        font-weight: bold;
-    }
-</style>
-
 <div class="page-header">
     <h1>Contas a pagar</h1>
     <p>Gestão de contas, vencimentos e prioridades financeiras da fazenda.</p>
 </div>
 
 <?php if ($erroPagina !== ''): ?>
-    <div class="mensagem erro" style="display: block; margin-bottom: 16px;">
+    <div class="mensagem erro mensagem-bloco">
         <?= htmlspecialchars($erroPagina, ENT_QUOTES, 'UTF-8') ?>
+    </div>
+<?php endif; ?>
+
+<?php if (($_GET['paga'] ?? '') === '1'): ?>
+    <div class="mensagem sucesso mensagem-bloco">
+        Conta marcada como paga.
+    </div>
+<?php endif; ?>
+
+<?php if (($_GET['excluida'] ?? '') === '1'): ?>
+    <div class="mensagem sucesso mensagem-bloco">
+        Conta excluída com sucesso.
+    </div>
+<?php endif; ?>
+
+<?php if (($_GET['ja_paga'] ?? '') === '1'): ?>
+    <div class="mensagem erro mensagem-bloco">
+        Esta conta já estava paga.
     </div>
 <?php endif; ?>
 
@@ -105,6 +97,7 @@ layoutInicio('Contas a pagar');
                         <th>Natureza</th>
                         <th>Vencimento</th>
                         <th>Prioridade</th>
+                        <th>Status</th>
                         <th>Valor</th>
                         <th>Ações</th>
                     </tr>
@@ -112,7 +105,7 @@ layoutInicio('Contas a pagar');
                 <tbody>
                     <?php if (empty($contas)): ?>
                         <tr>
-                            <td colspan="6">Nenhuma conta cadastrada ainda.</td>
+                            <td colspan="7">Nenhuma conta cadastrada ainda.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($contas as $conta): ?>
@@ -138,10 +131,17 @@ layoutInicio('Contas a pagar');
                                         <?= htmlspecialchars(strtoupper((string) $conta['prioridade'])) ?>
                                     </span>
                                 </td>
+                                <td>
+                                    <span class="badge <?= ($conta['status'] ?? '') === 'pago' ? 'badge-sucesso' : 'badge-alerta' ?>">
+                                        <?= htmlspecialchars(ucfirst((string) ($conta['status'] ?? 'pendente'))) ?>
+                                    </span>
+                                </td>
                                 <td class="valor-conta">R$ <?= $valorFormatado ?></td>
                                 <td>
                                     <div class="acoes-conta">
-                                        <a href="#" class="btn-link">Pagar</a>
+                                        <?php if (($conta['status'] ?? '') !== 'pago'): ?>
+                                            <a href="pagar_conta.php?id=<?= (int) $conta['id'] ?>" class="btn-link" onclick="return confirm('Marcar esta conta como paga?');">Pagar</a>
+                                        <?php endif; ?>
                                         <a href="excluir_conta.php?id=<?= (int) $conta['id'] ?>" class="btn-link" onclick="return confirm('Tem certeza que deseja apagar?');">Excluir</a>
                                     </div>
                                 </td>

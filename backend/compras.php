@@ -1,4 +1,6 @@
+<!--ESPECIFICA PARA COMPRA -->
 <?php
+//ESPECIFICA PARA COMPRA
 require_once __DIR__ . '/includes/layout.php';
 layoutInicio('Compras');
 ?>
@@ -85,7 +87,7 @@ layoutInicio('Compras');
 
         <div id="loading" class="loading">Carregando compras...</div>
 
-        <div class="table-wrapper" id="tableWrapper" style="display: none;">
+        <div class="table-wrapper hidden" id="tableWrapper">
             <table>
                 <thead>
                     <tr>
@@ -102,7 +104,7 @@ layoutInicio('Compras');
             </table>
         </div>
 
-        <div id="emptyState" class="empty" style="display: none;">
+        <div id="emptyState" class="empty hidden">
             Nenhuma compra cadastrada.
         </div>
     </section>

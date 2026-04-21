@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/animal_auditoria.php';
 require_once __DIR__ . '/includes/layout.php';
+
+garantirTabelaAuditoriaAnimal($pdo);
 
 $erro = '';
 $loteCookie = $_COOKIE['sga_lote_padrao'] ?? '';
@@ -104,6 +107,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             $novoId = $pdo->lastInsertId();
+
+            registrarAlteracaoAnimal(
+                $pdo,
+                (int) $novoId,
+                $brinco,
+                $nome_apelido,
+                'cadastro',
+                'Animal cadastrado no sistema.'
+            );
+
             header('Location: animal.php?id=' . $novoId);
             exit;
         } catch (PDOException $e) {
@@ -118,91 +131,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 layoutInicio('Cadastrar animal');
 ?>
-
 <style>
-    .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-
-    .card h2 {
-        margin-top: 0;
-        margin-bottom: 16px;
-        font-size: 20px;
-        color: #1f7a3f;
-    }
-
-    .card p {
-        margin-top: 0;
-        color: #666;
-        font-size: 14px;
-    }
-
-    .full {
-        grid-column: 1 / -1;
-    }
-
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-    }
-
-    .field {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .field.full {
-        grid-column: 1 / -1;
-    }
-
-    .erro {
-        margin-bottom: 16px;
-        padding: 12px;
-        border-radius: 10px;
-        background: #fdeaea;
-        color: #b42318;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-    .actions {
-        width: 100%;
-        margin-top: 20px;
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-    }
-
     form.animal-form {
         display: block;
         width: 100%;
     }
 
-    .secondary {
-        background: #eef2f7;
-        color: #333;
+    form.animal-form > .grid {
+        margin-bottom: 20px;
     }
 
-    .secondary:hover {
-        background: #dde5ee;
+    form.animal-form .actions {
+        display: flex;
+        width: 100%;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: center;
     }
 
-    .help {
-        font-size: 13px;
-        color: #666;
-        margin-top: 6px;
-    }
-
-    @media (max-width: 900px) {
-        .grid,
-        .form-grid {
-            grid-template-columns: 1fr;
-        }
+    form.animal-form .actions button,
+    form.animal-form .actions .btn-link {
+        width: auto;
+        min-width: 160px;
+        text-align: center;
     }
 </style>
 

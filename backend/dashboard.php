@@ -391,7 +391,7 @@ layoutInicio('Dashboard');
 </div>
 
 <?php if (!empty($errosDashboard)): ?>
-    <div class="mensagem erro" style="display: block; margin-bottom: 16px;">
+    <div class="mensagem erro mensagem-bloco">
         Algumas informações do dashboard não puderam ser carregadas.
     </div>
 <?php endif; ?>

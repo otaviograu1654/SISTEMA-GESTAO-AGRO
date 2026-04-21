@@ -117,13 +117,13 @@ layoutInicio('Suporte');
 </div>
 
 <?php if ($erro !== ''): ?>
-    <div class="mensagem erro" style="display: block; margin-bottom: 16px;">
+    <div class="mensagem erro mensagem-bloco">
         <?= htmlspecialchars($erro, ENT_QUOTES, 'UTF-8') ?>
     </div>
 <?php endif; ?>
 
 <?php if ($sucesso !== ''): ?>
-    <div class="mensagem sucesso" style="display: block; margin-bottom: 16px;">
+    <div class="mensagem sucesso mensagem-bloco">
         <?= htmlspecialchars($sucesso, ENT_QUOTES, 'UTF-8') ?>
     </div>
 <?php endif; ?>
@@ -204,7 +204,7 @@ layoutInicio('Suporte');
     </section>
 </div>
 
-<div class="panel" style="margin-top: 24px;">
+<div class="panel panel-spaced">
     <h2>Chamados registrados</h2>
     <p>Histórico dos chamados abertos no sistema.</p>
 
