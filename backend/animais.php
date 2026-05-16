@@ -1,5 +1,7 @@
 <?php
+require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/db.php';
+exigirPermissaoModulo('cadastros');
 require_once __DIR__ . '/includes/animal_auditoria.php';
 
 garantirTabelaAuditoriaAnimal($pdo);

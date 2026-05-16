@@ -33,15 +33,45 @@ CREATE TABLE IF NOT EXISTS animal_alteracoes (
     FOREIGN KEY (animal_id) REFERENCES animais(id)
 );
 
+CREATE TABLE IF NOT EXISTS parceiros (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    documento VARCHAR(50),
+    telefone VARCHAR(50),
+    email VARCHAR(150),
+    observacao VARCHAR(255),
+    ativo TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS racas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE,
+    descricao VARCHAR(255),
+    ativo TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lotes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE,
+    descricao VARCHAR(255),
+    ativo TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS animal_vendas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     animal_id INT NOT NULL,
+    parceiro_id INT NULL,
     comprador_nome VARCHAR(150) NOT NULL,
     data_venda DATE NOT NULL,
     valor DECIMAL(10,2) NULL,
     observacao VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (animal_id) REFERENCES animais(id)
+    FOREIGN KEY (animal_id) REFERENCES animais(id),
+    FOREIGN KEY (parceiro_id) REFERENCES parceiros(id)
 );
 
 CREATE TABLE IF NOT EXISTS animal_obitos (
@@ -64,6 +94,17 @@ CREATE TABLE IF NOT EXISTS pesagens (
     FOREIGN KEY (animal_id) REFERENCES animais(id)
 );
 
+CREATE TABLE IF NOT EXISTS producao_leite (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    animal_id INT NULL,
+    data_producao DATE NOT NULL,
+    turno VARCHAR(20) NOT NULL,
+    litros DECIMAL(10,2) NOT NULL,
+    observacao VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (animal_id) REFERENCES animais(id)
+);
+
 CREATE TABLE IF NOT EXISTS manejos_sanitarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     animal_id INT NOT NULL,
@@ -79,11 +120,39 @@ CREATE TABLE IF NOT EXISTS manejos_sanitarios (
 CREATE TABLE IF NOT EXISTS financeiro (
     id INT AUTO_INCREMENT PRIMARY KEY,
     tipo VARCHAR(20) NOT NULL,
+    parceiro_id INT NULL,
     categoria VARCHAR(100),
     descricao VARCHAR(255),
     valor DECIMAL(10,2) NOT NULL,
     data_lancamento DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parceiro_id) REFERENCES parceiros(id)
+);
+
+CREATE TABLE IF NOT EXISTS estoque_produtos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(50) NOT NULL UNIQUE,
+    nome VARCHAR(150) NOT NULL,
+    categoria VARCHAR(80) NOT NULL,
+    preco_custo DECIMAL(10,2) NOT NULL DEFAULT 0,
+    quantidade_atual DECIMAL(10,2) NOT NULL DEFAULT 0,
+    unidade VARCHAR(30) NOT NULL,
+    lote_produto VARCHAR(80),
+    validade DATE,
+    data_entrada DATE NOT NULL,
+    ativo TINYINT(1) DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS estoque_movimentacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    produto_id INT NOT NULL,
+    tipo VARCHAR(20) NOT NULL,
+    quantidade DECIMAL(10,2) NOT NULL,
+    data_movimento DATE NOT NULL,
+    observacao VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (produto_id) REFERENCES estoque_produtos(id)
 );
 
 CREATE TABLE IF NOT EXISTS tabelacontas (
@@ -104,7 +173,18 @@ CREATE TABLE IF NOT EXISTS usuarios (
     perfil VARCHAR(50) NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,
     ativo TINYINT(1) DEFAULT 1,
+    criado_por_id INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS usuario_permissoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    modulo VARCHAR(50) NOT NULL,
+    permitido TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY usuario_modulo (usuario_id, modulo),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS suporte_chamados (

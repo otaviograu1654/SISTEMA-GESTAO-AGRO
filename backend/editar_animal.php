@@ -15,6 +15,9 @@ if ($id <= 0) {
 
 $erro = '';
 $sucesso = '';
+$parceirosCompradores = [];
+$racasAtivas = [];
+$lotesAtivos = [];
 
 function valorEdicao(string $chave, array $animal): string
 {
@@ -148,10 +151,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($acao === 'registrar_venda') {
-        $comprador_nome = trim($_POST['comprador_nome'] ?? '');
+        $parceiro_id = (int) ($_POST['parceiro_id'] ?? 0);
         $data_venda = trim($_POST['data_venda'] ?? '');
         $valor_venda = trim($_POST['valor_venda'] ?? '');
         $observacao_venda = trim($_POST['observacao_venda'] ?? '');
+        $comprador_nome = '';
 
         if (($animal['status'] ?? 'Ativo') === 'Vendido') {
             $erro = 'Animal já foi vendido.';
@@ -161,8 +165,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $erro = 'Animal foi dado como óbito.';
         }
 
-        if ($erro === '' && ($comprador_nome === '' || $data_venda === '')) {
+        if ($erro === '' && ($parceiro_id <= 0 || $data_venda === '')) {
             $erro = 'Informe comprador e data da venda.';
+        }
+
+        if ($erro === '') {
+            $stmtParceiro = $pdo->prepare("
+                SELECT id, nome
+                FROM parceiros
+                WHERE id = :id
+                  AND tipo = 'Comprador'
+                  AND ativo = 1
+                LIMIT 1
+            ");
+            $stmtParceiro->execute([':id' => $parceiro_id]);
+            $parceiroVenda = $stmtParceiro->fetch(PDO::FETCH_ASSOC);
+
+            if (!$parceiroVenda) {
+                $erro = 'Selecione um comprador ativo cadastrado em parceiros.';
+            } else {
+                $comprador_nome = (string) $parceiroVenda['nome'];
+            }
         }
 
         if ($erro === '' && ($valor_venda === '' || (float) str_replace(',', '.', $valor_venda) <= 0)) {
@@ -177,12 +200,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmtVenda = $pdo->prepare("
                     INSERT INTO animal_vendas (
                         animal_id,
+                        parceiro_id,
                         comprador_nome,
                         data_venda,
                         valor,
                         observacao
                     ) VALUES (
                         :animal_id,
+                        :parceiro_id,
                         :comprador_nome,
                         :data_venda,
                         :valor,
@@ -192,6 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmtVenda->execute([
                     ':animal_id' => $id,
+                    ':parceiro_id' => $parceiro_id,
                     ':comprador_nome' => $comprador_nome,
                     ':data_venda' => $data_venda,
                     ':valor' => $valorBanco,
@@ -391,6 +417,39 @@ try {
     die('Erro ao recarregar animal: ' . $e->getMessage());
 }
 
+try {
+    $stmtParceiros = $pdo->query("
+        SELECT id, nome, documento
+        FROM parceiros
+        WHERE tipo = 'Comprador'
+          AND ativo = 1
+        ORDER BY nome ASC, id ASC
+    ");
+    $parceirosCompradores = $stmtParceiros->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $erro = $erro !== '' ? $erro : 'Não foi possível carregar os compradores cadastrados.';
+}
+
+try {
+    $stmtRacas = $pdo->query("
+        SELECT nome
+        FROM racas
+        WHERE ativo = 1
+        ORDER BY nome ASC, id ASC
+    ");
+    $racasAtivas = $stmtRacas->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmtLotes = $pdo->query("
+        SELECT nome
+        FROM lotes
+        WHERE ativo = 1
+        ORDER BY nome ASC, id ASC
+    ");
+    $lotesAtivos = $stmtLotes->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $erro = $erro !== '' ? $erro : 'Não foi possível carregar raças e lotes cadastrados.';
+}
+
 if (($_GET['sucesso'] ?? '') === '1') {
     $sucesso = 'Alterações salvas com sucesso.';
 }
@@ -408,6 +467,20 @@ $paiTexto = $animal['nome_pai']
     : 'Não informado';
 
 $ehFemea = (($animal['sexo'] ?? '') === 'Fêmea');
+$statusAnimal = $animal['status'] ?? 'Ativo';
+$animalBaixado = in_array($statusAnimal, ['Vendido', 'Óbito'], true);
+$classeStatusAnimal = 'status-ativo';
+$textoStatusAnimal = 'Animal ativo no rebanho. As ações de venda e óbito estão disponíveis.';
+
+if ($statusAnimal === 'Vendido') {
+    $classeStatusAnimal = 'status-vendido';
+    $textoStatusAnimal = 'Animal vendido. As ações de venda e óbito ficam bloqueadas para preservar o histórico.';
+}
+
+if ($statusAnimal === 'Óbito') {
+    $classeStatusAnimal = 'status-obito';
+    $textoStatusAnimal = 'Animal em óbito. As ações de venda e óbito ficam bloqueadas para preservar o histórico.';
+}
 
 layoutInicio('Editar animal');
 ?>
@@ -432,13 +505,15 @@ layoutInicio('Editar animal');
         color: #6b7280;
     }
 
-    .campo-bloqueado input {
+    .campo-bloqueado input,
+    .campo-bloqueado select {
         background: #f4f6f8;
         color: #5f6b76;
         cursor: not-allowed;
     }
 
-    .campo-bloqueado input:focus {
+    .campo-bloqueado input:focus,
+    .campo-bloqueado select:focus {
         border-color: #d5dadd;
         box-shadow: none;
     }
@@ -467,9 +542,18 @@ layoutInicio('Editar animal');
         background: #fbfcfb;
     }
 
+    .baixa-card.bloqueada {
+        background: #f6f7f8;
+        border-color: #d8dde1;
+    }
+
     .baixa-card h3 {
         margin-bottom: 8px;
         color: #1f7a3f;
+    }
+
+    .baixa-card.bloqueada h3 {
+        color: #5f6b76;
     }
 
     .baixa-card p {
@@ -519,6 +603,49 @@ layoutInicio('Editar animal');
 
     .baixa-button:hover {
         background: #176331 !important;
+    }
+
+    .baixa-button:disabled {
+        background: #98a2b3 !important;
+        cursor: not-allowed;
+        opacity: 0.78;
+    }
+
+    .status-baixa {
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+        border: 1px solid #d7e7dc;
+        background: #f5fbf7;
+    }
+
+    .status-baixa strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #1f7a3f;
+    }
+
+    .status-baixa p {
+        margin: 0;
+        min-height: 0;
+    }
+
+    .status-baixa.status-vendido {
+        border-color: #f5d995;
+        background: #fffbeb;
+    }
+
+    .status-baixa.status-vendido strong {
+        color: #b54708;
+    }
+
+    .status-baixa.status-obito {
+        border-color: #f1b8b8;
+        background: #fff5f5;
+    }
+
+    .status-baixa.status-obito strong {
+        color: #b42318;
     }
 
     .animal-form-edicao .actions {
@@ -642,12 +769,33 @@ layoutInicio('Editar animal');
 
                 <div class="field">
                     <label for="lote">Lote</label>
-                    <input type="text" id="lote" name="lote" value="<?= valorEdicao('lote', $animal) ?>">
+                    <select id="lote" name="lote">
+                        <option value="">Não informar</option>
+                        <?php if (($animal['lote'] ?? '') !== '' && !in_array($animal['lote'], array_column($lotesAtivos, 'nome'), true)): ?>
+                            <option value="<?= textoSeguro($animal['lote']) ?>" selected>
+                                <?= textoSeguro($animal['lote']) ?> (cadastrado no animal)
+                            </option>
+                        <?php endif; ?>
+                        <?php foreach ($lotesAtivos as $lote): ?>
+                            <option value="<?= htmlspecialchars($lote['nome'], ENT_QUOTES, 'UTF-8') ?>" <?= (($animal['lote'] ?? '') === $lote['nome']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($lote['nome'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <div class="field campo-bloqueado">
                     <label for="raca_bloqueada">Raça</label>
-                    <input type="text" id="raca_bloqueada" value="<?= textoSeguro($animal['raca']) ?>" disabled>
+                    <select id="raca_bloqueada" disabled>
+                        <?php if (($animal['raca'] ?? '') !== '' && !in_array($animal['raca'], array_column($racasAtivas, 'nome'), true)): ?>
+                            <option selected><?= textoSeguro($animal['raca']) ?> (cadastrado no animal)</option>
+                        <?php endif; ?>
+                        <?php foreach ($racasAtivas as $raca): ?>
+                            <option <?= (($animal['raca'] ?? '') === $raca['nome']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($raca['nome'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <div class="field campo-bloqueado">
@@ -711,20 +859,35 @@ layoutInicio('Editar animal');
         <h2>Baixa do animal</h2>
         <p>Use venda ou óbito para manter o histórico. Exclua só se o cadastro foi criado por engano.</p>
 
+        <div class="status-baixa <?= $classeStatusAnimal ?>">
+            <strong>Situação atual: <?= textoSeguro($statusAnimal) ?></strong>
+            <p><?= textoSeguro($textoStatusAnimal) ?></p>
+        </div>
+
         <div class="baixa-grid">
-            <div class="baixa-card">
+            <div class="baixa-card <?= $animalBaixado ? 'bloqueada' : '' ?>">
                 <h3>Venda</h3>
-                <p>Registra comprador, data e valor da venda.</p>
-                <button type="button" class="baixa-button" onclick="abrirJanela('janelaVenda')">
-                    Registrar venda
+                <p><?= $animalBaixado ? 'Indisponível porque o animal já possui baixa registrada.' : 'Registra comprador, data e valor da venda.' ?></p>
+                <button
+                    type="button"
+                    class="baixa-button"
+                    onclick="abrirJanela('janelaVenda')"
+                    <?= $animalBaixado ? 'disabled' : '' ?>
+                >
+                    <?= $animalBaixado ? 'Venda bloqueada' : 'Registrar venda' ?>
                 </button>
             </div>
 
-            <div class="baixa-card">
+            <div class="baixa-card <?= $animalBaixado ? 'bloqueada' : '' ?>">
                 <h3>Óbito</h3>
-                <p>Registra data, causa e observação do ocorrido.</p>
-                <button type="button" class="baixa-button" onclick="abrirJanela('janelaObito')">
-                    Registrar óbito
+                <p><?= $animalBaixado ? 'Indisponível porque o animal já possui baixa registrada.' : 'Registra data, causa e observação do ocorrido.' ?></p>
+                <button
+                    type="button"
+                    class="baixa-button"
+                    onclick="abrirJanela('janelaObito')"
+                    <?= $animalBaixado ? 'disabled' : '' ?>
+                >
+                    <?= $animalBaixado ? 'Óbito bloqueado' : 'Registrar óbito' ?>
                 </button>
             </div>
 
@@ -757,8 +920,18 @@ layoutInicio('Editar animal');
 
             <div class="form-grid">
                 <div class="field">
-                    <label for="comprador_nome">Comprador *</label>
-                    <input type="text" id="comprador_nome" name="comprador_nome" required>
+                    <label for="parceiro_id">Comprador *</label>
+                    <select id="parceiro_id" name="parceiro_id" required>
+                        <option value="">Selecione</option>
+                        <?php foreach ($parceirosCompradores as $parceiro): ?>
+                            <option value="<?= (int) $parceiro['id'] ?>">
+                                <?= htmlspecialchars($parceiro['nome'] . (!empty($parceiro['documento']) ? ' - ' . $parceiro['documento'] : ''), ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (empty($parceirosCompradores)): ?>
+                        <span class="help">Cadastre um parceiro do tipo comprador antes de registrar a venda.</span>
+                    <?php endif; ?>
                 </div>
 
                 <div class="field">

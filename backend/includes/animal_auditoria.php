@@ -29,17 +29,40 @@ function garantirStatusAnimal(PDO $pdo): void
 function garantirBaixasAnimal(PDO $pdo): void
 {
     $pdo->exec("
+        CREATE TABLE IF NOT EXISTS parceiros (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nome VARCHAR(150) NOT NULL,
+            tipo VARCHAR(50) NOT NULL,
+            documento VARCHAR(50),
+            telefone VARCHAR(50),
+            email VARCHAR(150),
+            observacao VARCHAR(255),
+            ativo TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    $pdo->exec("
         CREATE TABLE IF NOT EXISTS animal_vendas (
             id INT AUTO_INCREMENT PRIMARY KEY,
             animal_id INT NOT NULL,
+            parceiro_id INT NULL,
             comprador_nome VARCHAR(150) NOT NULL,
             data_venda DATE NOT NULL,
             valor DECIMAL(10,2) NULL,
             observacao VARCHAR(255),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (animal_id) REFERENCES animais(id)
+            FOREIGN KEY (animal_id) REFERENCES animais(id),
+            FOREIGN KEY (parceiro_id) REFERENCES parceiros(id)
         )
     ");
+
+    $stmt = $pdo->query("SHOW COLUMNS FROM animal_vendas LIKE 'parceiro_id'");
+    $existeParceiroVenda = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$existeParceiroVenda) {
+        $pdo->exec("ALTER TABLE animal_vendas ADD COLUMN parceiro_id INT NULL AFTER animal_id");
+    }
 
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS animal_obitos (

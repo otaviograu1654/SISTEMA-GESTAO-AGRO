@@ -102,14 +102,20 @@ function garantirEstruturaAnimais(PDO $pdo, string $banco): void
         CREATE TABLE IF NOT EXISTS animal_vendas (
             id INT AUTO_INCREMENT PRIMARY KEY,
             animal_id INT NOT NULL,
+            parceiro_id INT NULL,
             comprador_nome VARCHAR(150) NOT NULL,
             data_venda DATE NOT NULL,
             valor DECIMAL(10,2) NULL,
             observacao VARCHAR(255),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (animal_id) REFERENCES animais(id)
+            FOREIGN KEY (animal_id) REFERENCES animais(id),
+            FOREIGN KEY (parceiro_id) REFERENCES parceiros(id)
         )
     ");
+
+    if (!colunaExiste($pdo, 'animal_vendas', 'parceiro_id', $banco)) {
+        $pdo->exec("ALTER TABLE animal_vendas ADD COLUMN parceiro_id INT NULL AFTER animal_id");
+    }
 
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS animal_obitos (
@@ -134,12 +140,167 @@ function garantirEstruturaUsuarios(PDO $pdo, string $banco): void
             perfil VARCHAR(50) NOT NULL,
             senha_hash VARCHAR(255) NOT NULL,
             ativo TINYINT(1) DEFAULT 1,
+            criado_por_id INT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ");
 
     if (!colunaExiste($pdo, 'usuarios', 'ativo', $banco)) {
         $pdo->exec("ALTER TABLE usuarios ADD COLUMN ativo TINYINT(1) DEFAULT 1");
+    }
+
+    if (!colunaExiste($pdo, 'usuarios', 'criado_por_id', $banco)) {
+        $pdo->exec("ALTER TABLE usuarios ADD COLUMN criado_por_id INT NULL AFTER ativo");
+    }
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS usuario_permissoes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            usuario_id INT NOT NULL,
+            modulo VARCHAR(50) NOT NULL,
+            permitido TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY usuario_modulo (usuario_id, modulo),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+        )
+    ");
+
+    $stmt = $pdo->prepare("
+        UPDATE usuarios
+        SET nome = CASE WHEN nome = 'Administrador' THEN 'Desenvolvedor' ELSE nome END,
+            perfil = 'Desenvolvedor'
+        WHERE email = 'admin@sga.local'
+          AND perfil = 'Administrador'
+    ");
+    $stmt->execute();
+}
+
+function garantirEstruturaParceiros(PDO $pdo, string $banco): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS parceiros (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nome VARCHAR(150) NOT NULL,
+            tipo VARCHAR(50) NOT NULL,
+            documento VARCHAR(50),
+            telefone VARCHAR(50),
+            email VARCHAR(150),
+            observacao VARCHAR(255),
+            ativo TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    if (!colunaExiste($pdo, 'parceiros', 'ativo', $banco)) {
+        $pdo->exec("ALTER TABLE parceiros ADD COLUMN ativo TINYINT(1) DEFAULT 1");
+    }
+}
+
+function garantirEstruturaFinanceiro(PDO $pdo, string $banco): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS financeiro (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            tipo VARCHAR(20) NOT NULL,
+            parceiro_id INT NULL,
+            categoria VARCHAR(100),
+            descricao VARCHAR(255),
+            valor DECIMAL(10,2) NOT NULL,
+            data_lancamento DATE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (parceiro_id) REFERENCES parceiros(id)
+        )
+    ");
+
+    if (!colunaExiste($pdo, 'financeiro', 'parceiro_id', $banco)) {
+        $pdo->exec("ALTER TABLE financeiro ADD COLUMN parceiro_id INT NULL AFTER tipo");
+    }
+}
+
+function garantirEstruturaRacas(PDO $pdo, string $banco): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS racas (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nome VARCHAR(100) NOT NULL UNIQUE,
+            descricao VARCHAR(255),
+            ativo TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    if (!colunaExiste($pdo, 'racas', 'ativo', $banco)) {
+        $pdo->exec("ALTER TABLE racas ADD COLUMN ativo TINYINT(1) DEFAULT 1");
+    }
+}
+
+function garantirEstruturaEstoque(PDO $pdo, string $banco): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS estoque_produtos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            codigo VARCHAR(50) NOT NULL UNIQUE,
+            nome VARCHAR(150) NOT NULL,
+            categoria VARCHAR(80) NOT NULL,
+            preco_custo DECIMAL(10,2) NOT NULL DEFAULT 0,
+            quantidade_atual DECIMAL(10,2) NOT NULL DEFAULT 0,
+            unidade VARCHAR(30) NOT NULL,
+            lote_produto VARCHAR(80),
+            validade DATE,
+            data_entrada DATE NOT NULL,
+            ativo TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    if (!colunaExiste($pdo, 'estoque_produtos', 'ativo', $banco)) {
+        $pdo->exec("ALTER TABLE estoque_produtos ADD COLUMN ativo TINYINT(1) DEFAULT 1");
+    }
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS estoque_movimentacoes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            produto_id INT NOT NULL,
+            tipo VARCHAR(20) NOT NULL,
+            quantidade DECIMAL(10,2) NOT NULL,
+            data_movimento DATE NOT NULL,
+            observacao VARCHAR(255),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (produto_id) REFERENCES estoque_produtos(id)
+        )
+    ");
+}
+
+function garantirEstruturaProducaoLeite(PDO $pdo, string $banco): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS producao_leite (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            animal_id INT NULL,
+            data_producao DATE NOT NULL,
+            turno VARCHAR(20) NOT NULL,
+            litros DECIMAL(10,2) NOT NULL,
+            observacao VARCHAR(255),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (animal_id) REFERENCES animais(id)
+        )
+    ");
+}
+
+function garantirEstruturaLotes(PDO $pdo, string $banco): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS lotes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nome VARCHAR(100) NOT NULL UNIQUE,
+            descricao VARCHAR(255),
+            ativo TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    if (!colunaExiste($pdo, 'lotes', 'ativo', $banco)) {
+        $pdo->exec("ALTER TABLE lotes ADD COLUMN ativo TINYINT(1) DEFAULT 1");
     }
 }
 
@@ -173,7 +334,13 @@ try {
     $pdoDb = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
     $pdoDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+    garantirEstruturaParceiros($pdoDb, $dbname);
+    garantirEstruturaFinanceiro($pdoDb, $dbname);
+    garantirEstruturaRacas($pdoDb, $dbname);
+    garantirEstruturaEstoque($pdoDb, $dbname);
+    garantirEstruturaLotes($pdoDb, $dbname);
     garantirEstruturaAnimais($pdoDb, $dbname);
+    garantirEstruturaProducaoLeite($pdoDb, $dbname);
     garantirEstruturaUsuarios($pdoDb, $dbname);
     garantirEstruturaSuporte($pdoDb, $dbname);
 

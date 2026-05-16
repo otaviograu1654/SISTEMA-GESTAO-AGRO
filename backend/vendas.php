@@ -1,13 +1,12 @@
-<!-- ESSA PAGINA E PARA REGISTRAR VENDAS -->
 <?php
-//ESSA PAGINA E PARA REGISTRAR VENDAS
+// Esta página serve para registrar vendas e enviar a receita correspondente ao financeiro.
 require_once __DIR__ . '/includes/layout.php';
 layoutInicio('Vendas');
 ?>
 
 <div class="page-header">
     <h1>Vendas</h1>
-    <p>Controle de vendas de produtos, animais ou produção.</p>
+    <p>Use esta página para registrar vendas específicas e lançar a receita correspondente no financeiro.</p>
 </div>
 
 <div class="cards">

@@ -1,5 +1,7 @@
 <?php
+require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/db.php';
+exigirPermissaoModulo('movimentacao');
 
 function responder($dados, int $status = 200): void
 {

@@ -1,7 +1,8 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
-
+require_once __DIR__ . '/includes/auth.php';
 require_once 'db.php';
+exigirPermissaoModulo('financeiro');
+header('Content-Type: application/json; charset=utf-8');
 
 function responder($dados, int $status = 200): void
 {
@@ -29,21 +30,36 @@ function dataValida(string $data): bool
     return $objetoData !== false && $objetoData->format('Y-m-d') === $data;
 }
 
+function garantirEstruturaFinanceiro(PDO $pdo): void
+{
+    $stmt = $pdo->query("SHOW COLUMNS FROM financeiro LIKE 'parceiro_id'");
+    $existe = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$existe) {
+        $pdo->exec("ALTER TABLE financeiro ADD COLUMN parceiro_id INT NULL AFTER tipo");
+    }
+}
+
 try {
+    garantirEstruturaFinanceiro($pdo);
+
     $metodo = $_SERVER['REQUEST_METHOD'];
 
     if ($metodo === 'GET') {
         $stmt = $pdo->query("
             SELECT
-                id,
-                tipo,
-                categoria,
-                descricao,
-                valor,
-                data_lancamento,
-                created_at
-            FROM financeiro
-            ORDER BY data_lancamento DESC, id DESC
+                f.id,
+                f.tipo,
+                f.parceiro_id,
+                p.nome AS parceiro_nome,
+                f.categoria,
+                f.descricao,
+                f.valor,
+                f.data_lancamento,
+                f.created_at
+            FROM financeiro f
+            LEFT JOIN parceiros p ON p.id = f.parceiro_id
+            ORDER BY f.data_lancamento DESC, f.id DESC
         ");
 
         $lancamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -58,6 +74,7 @@ try {
         }
 
         $tipo = normalizarTipoLancamento($entrada['tipo'] ?? '');
+        $parceiro_id = (int) ($entrada['parceiro_id'] ?? 0);
         $categoria = trim($entrada['categoria'] ?? '');
         $descricao = trim($entrada['descricao'] ?? '');
         $valor = trim((string) ($entrada['valor'] ?? ''));
@@ -87,15 +104,28 @@ try {
             ], 400);
         }
 
+        if ($parceiro_id > 0) {
+            $stmtParceiro = $pdo->prepare("SELECT id FROM parceiros WHERE id = :id AND ativo = 1 LIMIT 1");
+            $stmtParceiro->execute([':id' => $parceiro_id]);
+
+            if (!$stmtParceiro->fetch(PDO::FETCH_ASSOC)) {
+                responder([
+                    'erro' => 'Parceiro não encontrado ou inativo.'
+                ], 404);
+            }
+        }
+
         $stmt = $pdo->prepare("
             INSERT INTO financeiro (
                 tipo,
+                parceiro_id,
                 categoria,
                 descricao,
                 valor,
                 data_lancamento
             ) VALUES (
                 :tipo,
+                :parceiro_id,
                 :categoria,
                 :descricao,
                 :valor,
@@ -105,6 +135,7 @@ try {
 
         $stmt->execute([
             ':tipo' => $tipo,
+            ':parceiro_id' => $parceiro_id > 0 ? $parceiro_id : null,
             ':categoria' => $categoria !== '' ? $categoria : null,
             ':descricao' => $descricao !== '' ? $descricao : null,
             ':valor' => $valor,

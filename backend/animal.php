@@ -55,10 +55,13 @@ try {
     $totalCrias = (int) $stmtCrias->fetchColumn();
 
     $stmtVenda = $pdo->prepare("
-        SELECT *
-        FROM animal_vendas
-        WHERE animal_id = :id
-        ORDER BY data_venda DESC, id DESC
+        SELECT
+            av.*,
+            p.nome AS parceiro_nome
+        FROM animal_vendas av
+        LEFT JOIN parceiros p ON p.id = av.parceiro_id
+        WHERE av.animal_id = :id
+        ORDER BY av.data_venda DESC, av.id DESC
         LIMIT 1
     ");
     $stmtVenda->execute([':id' => $id]);
@@ -234,7 +237,7 @@ layoutInicio('Detalhes do animal');
                 <?php if ($vendaAnimal): ?>
                     <div class="info-item">
                         <span class="info-label">Comprador</span>
-                        <span class="info-value"><?= textoSeguro($vendaAnimal['comprador_nome']) ?></span>
+                        <span class="info-value"><?= textoSeguro($vendaAnimal['parceiro_nome'] ?: $vendaAnimal['comprador_nome']) ?></span>
                     </div>
 
                     <div class="info-item">

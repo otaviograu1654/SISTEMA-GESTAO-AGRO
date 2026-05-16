@@ -1,13 +1,44 @@
-<!--ESPECIFICA PARA COMPRA -->
 <?php
-//ESPECIFICA PARA COMPRA
+// Esta página serve para registrar compras e enviar a despesa correspondente ao financeiro.
+require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/layout.php';
+
+$erroPagina = '';
+$fornecedores = [];
+
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS parceiros (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nome VARCHAR(150) NOT NULL,
+            tipo VARCHAR(50) NOT NULL,
+            documento VARCHAR(50),
+            telefone VARCHAR(50),
+            email VARCHAR(150),
+            observacao VARCHAR(255),
+            ativo TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+
+    $stmtFornecedores = $pdo->query("
+        SELECT id, nome, documento
+        FROM parceiros
+        WHERE tipo = 'Fornecedor'
+          AND ativo = 1
+        ORDER BY nome ASC, id ASC
+    ");
+    $fornecedores = $stmtFornecedores->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $erroPagina = 'Não foi possível carregar os fornecedores cadastrados.';
+}
+
 layoutInicio('Compras');
 ?>
 
 <div class="page-header">
     <h1>Compras</h1>
-    <p>Controle as compras de insumos, medicamentos, rações e materiais da fazenda.</p>
+    <p>Use esta página para registrar compras específicas da fazenda e lançar a despesa no financeiro.</p>
 </div>
 
 <div class="cards">
@@ -30,6 +61,12 @@ layoutInicio('Compras');
         <h2>Registrar compra</h2>
         <p>As compras são lançadas como despesas no módulo financeiro.</p>
 
+        <?php if ($erroPagina !== ''): ?>
+            <div class="mensagem erro mensagem-bloco">
+                <?= htmlspecialchars($erroPagina, ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
+
         <form id="formCompra">
             <div class="form-group">
                 <label for="categoria">Categoria</label>
@@ -49,8 +86,21 @@ layoutInicio('Compras');
             </div>
 
             <div class="form-group">
-                <label for="fornecedor">Fornecedor</label>
-                <input type="text" id="fornecedor" name="fornecedor" placeholder="Ex: Agro Forte" required>
+                <label for="parceiro_id">Fornecedor</label>
+                <select id="parceiro_id" name="parceiro_id" required <?= $erroPagina !== '' ? 'disabled' : '' ?>>
+                    <option value="">Selecione</option>
+                    <?php foreach ($fornecedores as $fornecedor): ?>
+                        <option
+                            value="<?= (int) $fornecedor['id'] ?>"
+                            data-nome="<?= htmlspecialchars($fornecedor['nome'], ENT_QUOTES, 'UTF-8') ?>"
+                        >
+                            <?= htmlspecialchars($fornecedor['nome'] . (!empty($fornecedor['documento']) ? ' - ' . $fornecedor['documento'] : ''), ENT_QUOTES, 'UTF-8') ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (empty($fornecedores)): ?>
+                    <span class="help">Cadastre um parceiro do tipo fornecedor antes de registrar compras.</span>
+                <?php endif; ?>
             </div>
 
             <div class="form-group">
@@ -74,7 +124,7 @@ layoutInicio('Compras');
             </div>
 
             <div class="form-group full-width">
-                <button type="submit">Salvar compra</button>
+                <button type="submit" <?= $erroPagina !== '' ? 'disabled' : '' ?>>Salvar compra</button>
             </div>
         </form>
 
@@ -294,7 +344,9 @@ layoutInicio('Compras');
         formCompra.addEventListener('submit', async function (event) {
             event.preventDefault();
 
-            const fornecedor = document.getElementById('fornecedor').value.trim();
+            const parceiroSelect = document.getElementById('parceiro_id');
+            const parceiroId = parceiroSelect.value;
+            const fornecedor = parceiroSelect.options[parceiroSelect.selectedIndex]?.dataset.nome || '';
             const produto = document.getElementById('produto').value.trim();
             const quantidade = Number(document.getElementById('quantidade').value);
             const valorUnitario = Number(document.getElementById('valor_unitario').value);
@@ -308,6 +360,7 @@ layoutInicio('Compras');
 
             const dados = {
                 tipo: 'Despesa',
+                parceiro_id: parceiroId,
                 categoria: document.getElementById('categoria').value,
                 descricao: montarDescricaoCompra({
                     fornecedor,

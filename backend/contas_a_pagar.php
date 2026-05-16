@@ -1,6 +1,5 @@
-<!--PAGINA SERVE SO PARA REGISTRAR PENDENCIAS -->
 <?php
-//PAGINA SERVE SO PARA REGISTRAR PENDENCIAS
+// Esta página serve para registrar e acompanhar contas pendentes da fazenda.
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/layout.php';
 
@@ -19,7 +18,7 @@ layoutInicio('Contas a pagar');
 
 <div class="page-header">
     <h1>Contas a pagar</h1>
-    <p>Gestão de contas, vencimentos e prioridades financeiras da fazenda.</p>
+    <p>Use esta página para registrar contas futuras ou pendentes e marcar o pagamento quando ele acontecer.</p>
 </div>
 
 <?php if ($erroPagina !== ''): ?>

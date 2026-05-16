@@ -6,8 +6,8 @@ require_once __DIR__ . '/includes/layout.php';
 garantirTabelaAuditoriaAnimal($pdo);
 
 $erro = '';
-$loteCookie = $_COOKIE['sga_lote_padrao'] ?? '';
-$racaCookie = $_COOKIE['sga_raca_padrao'] ?? '';
+$racas = [];
+$lotes = [];
 
 function valorAntigo(string $chave, string $padrao = ''): string
 {
@@ -20,6 +20,22 @@ function selecionado(string $chave, string $valor): string
 }
 
 try {
+    $stmtRacas = $pdo->query("
+        SELECT nome
+        FROM racas
+        WHERE ativo = 1
+        ORDER BY nome ASC, id ASC
+    ");
+    $racas = $stmtRacas->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmtLotes = $pdo->query("
+        SELECT nome
+        FROM lotes
+        WHERE ativo = 1
+        ORDER BY nome ASC, id ASC
+    ");
+    $lotes = $stmtLotes->fetchAll(PDO::FETCH_ASSOC);
+
     $stmtFemeas = $pdo->query("
         SELECT id, nome_apelido, brinco
         FROM animais
@@ -36,7 +52,7 @@ try {
     ");
     $machos = $stmtMachos->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die('Erro ao carregar listas de mãe e pai: ' . $e->getMessage());
+    die('Erro ao carregar listas do cadastro: ' . $e->getMessage());
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -190,7 +206,17 @@ layoutInicio('Cadastrar animal');
 
                 <div class="field">
                     <label for="raca">Raça *</label>
-                    <input type="text" id="raca" name="raca" value="<?= valorAntigo('raca', $racaCookie) ?>" required>
+                    <select id="raca" name="raca" required>
+                        <option value="">Selecione</option>
+                        <?php foreach ($racas as $raca): ?>
+                            <option value="<?= htmlspecialchars($raca['nome'], ENT_QUOTES, 'UTF-8') ?>" <?= selecionado('raca', $raca['nome']) ?>>
+                                <?= htmlspecialchars($raca['nome'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (empty($racas)): ?>
+                        <span class="help">Cadastre uma raça antes de criar animais.</span>
+                    <?php endif; ?>
                 </div>
 
                 <div class="field">
@@ -209,7 +235,17 @@ layoutInicio('Cadastrar animal');
 
                 <div class="field">
                     <label for="lote">Lote</label>
-                    <input type="text" id="lote" name="lote" value="<?= valorAntigo('lote', $loteCookie) ?>">
+                    <select id="lote" name="lote">
+                        <option value="">Não informar</option>
+                        <?php foreach ($lotes as $lote): ?>
+                            <option value="<?= htmlspecialchars($lote['nome'], ENT_QUOTES, 'UTF-8') ?>" <?= selecionado('lote', $lote['nome']) ?>>
+                                <?= htmlspecialchars($lote['nome'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (empty($lotes)): ?>
+                        <span class="help">Cadastre lotes para organizar o rebanho.</span>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

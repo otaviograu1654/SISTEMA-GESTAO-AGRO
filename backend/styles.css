@@ -12,6 +12,7 @@ body {
 .topbar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     background: white;
     padding: 12px 24px;
     border-bottom: 1px solid #e5e7eb;
@@ -31,6 +32,28 @@ body {
     margin: 0;
     font-size: 13px;
     color: #666;
+}
+
+.topbar-fazenda,
+.topbar-usuario {
+    color: #1f7a3f;
+    font-weight: 800;
+}
+
+.topbar-separador {
+    margin: 0 6px;
+    color: #9aa4b2;
+}
+
+.topbar-perfil {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #e7f6ec;
+    color: #1f7a3f;
+    font-size: 12px;
+    font-weight: 800;
 }
 
 .layout {
@@ -57,11 +80,15 @@ body {
     flex: 1 1 auto;
     min-width: 0;
     width: auto;
+    min-height: calc(100vh - 70px);
+    display: flex;
+    flex-direction: column;
 }
 
 .content {
     width: 100%;
     padding: 24px;
+    flex: 1 1 auto;
 }
 
 .menu-title {
@@ -87,6 +114,16 @@ body {
 .menu a.active-parent {
     background: rgba(255,255,255,0.08);
     border-left-color: #66d18f;
+}
+
+.menu-logout {
+    margin-top: 4px;
+    color: #fdeaea !important;
+}
+
+.menu-logout:hover {
+    background: rgba(180, 35, 24, 0.18) !important;
+    border-left-color: #f97066 !important;
 }
 
 .menu-link {
@@ -282,6 +319,19 @@ body {
 
 .btn-link:hover {
     background: #f6faf7;
+}
+
+.app-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: white;
+    color: #667085;
+    font-size: 13px;
+    font-weight: 700;
 }
 
 .table-wrapper {
@@ -688,6 +738,79 @@ button[type="submit"]:hover {
     background: #186232;
 }
 
+.acoes-inline {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.check-option,
+.check-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    color: #444;
+}
+
+.check-option {
+    padding: 10px 12px;
+    border: 1px solid #d8e3db;
+    border-radius: 10px;
+    background: #fafcfb;
+}
+
+.check-option input,
+.check-mini input {
+    width: auto;
+}
+
+.permissoes-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.check-mini {
+    font-size: 12px;
+    margin-right: 4px;
+}
+
+.form-inline {
+    display: inline-block;
+}
+
+.form-inline .btn-tabela {
+    border: 1px solid #1f7a3f;
+    border-radius: 8px;
+    padding: 7px 10px;
+    background: white;
+    color: #1f7a3f;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.form-inline .btn-tabela:hover {
+    background: #e7f6ec;
+}
+
+.form-inline .btn-tabela.btn-perigo {
+    border-color: #b42318;
+    color: #b42318;
+}
+
+.form-inline .btn-tabela.btn-perigo:hover {
+    background: #fdeaea;
+}
+
 @media (max-width: 980px) {
     .layout {
         flex-direction: column;
@@ -711,6 +834,10 @@ button[type="submit"]:hover {
 
     .dashboard-header,
     .split-header {
+        flex-direction: column;
+    }
+
+    .app-footer {
         flex-direction: column;
     }
 

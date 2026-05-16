@@ -1,6 +1,4 @@
-<!--PAGINA E SO UM RELATORIO -->
 <?php
-//PAGINA E SO UM RELATORIO
 require_once __DIR__ . '/includes/layout.php';
 
 $movimentacoes = [

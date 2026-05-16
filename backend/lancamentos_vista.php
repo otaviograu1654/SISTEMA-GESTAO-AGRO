@@ -1,13 +1,12 @@
-<!--PAGINA E PARA MOVIMENTAÇÃO IMEDIATA-->
 <?php
-//PAGINA E PARA MOVIMENTAÇÃO IMEDIATA
+// Esta página serve para lançar receitas e despesas pagas ou recebidas na hora.
 require_once __DIR__ . '/includes/layout.php';
 layoutInicio('Lançamentos à vista');
 ?>
 
 <div class="page-header">
     <h1>Lançamentos à vista</h1>
-    <p>Movimentações pagas ou recebidas na hora.</p>
+    <p>Use esta página para receitas e despesas liquidadas no mesmo momento, sem ficar pendentes.</p>
 </div>
 
 <div class="cards">

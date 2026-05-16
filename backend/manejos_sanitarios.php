@@ -1,8 +1,8 @@
-// não é uma página visual
 <?php
-header('Content-Type: application/json; charset=utf-8');
-
+require_once __DIR__ . '/includes/auth.php';
 require_once 'db.php';
+exigirPermissaoModulo('movimentacao');
+header('Content-Type: application/json; charset=utf-8');
 
 function responder($dados, int $status = 200): void
 {
