@@ -48,6 +48,21 @@ function formatarDataTela($data): string
     return date('d/m/Y', $timestamp);
 }
 
+function garantirOrigemFinanceiro(PDO $pdo): void
+{
+    $stmtParceiro = $pdo->query("SHOW COLUMNS FROM financeiro LIKE 'parceiro_id'");
+
+    if (!$stmtParceiro->fetch(PDO::FETCH_ASSOC)) {
+        $pdo->exec("ALTER TABLE financeiro ADD COLUMN parceiro_id INT NULL AFTER tipo");
+    }
+
+    $stmt = $pdo->query("SHOW COLUMNS FROM financeiro LIKE 'origem'");
+
+    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+        $pdo->exec("ALTER TABLE financeiro ADD COLUMN origem VARCHAR(50) NULL AFTER parceiro_id");
+    }
+}
+
 try {
     $sql = "
         SELECT
@@ -194,6 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($erro === '') {
             try {
+                garantirOrigemFinanceiro($pdo);
                 $valorBanco = (float) str_replace(',', '.', $valor_venda);
                 $pdo->beginTransaction();
 
@@ -230,12 +246,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmtFinanceiro = $pdo->prepare("
                     INSERT INTO financeiro (
                         tipo,
+                        parceiro_id,
+                        origem,
                         categoria,
                         descricao,
                         valor,
                         data_lancamento
                     ) VALUES (
                         :tipo,
+                        :parceiro_id,
+                        :origem,
                         :categoria,
                         :descricao,
                         :valor,
@@ -245,6 +265,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmtFinanceiro->execute([
                     ':tipo' => 'Receita',
+                    ':parceiro_id' => $parceiro_id,
+                    ':origem' => 'Venda de animal',
                     ':categoria' => 'Venda de animais',
                     ':descricao' => 'Venda do animal ' . $animal['nome_apelido'] . ' / brinco ' . $animal['brinco'] . ' para ' . $comprador_nome,
                     ':valor' => $valorBanco,

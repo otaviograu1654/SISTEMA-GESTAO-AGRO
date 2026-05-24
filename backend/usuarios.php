@@ -86,6 +86,15 @@ function perfisPermitidosParaCadastro(): array
     return [];
 }
 
+function perfisPermitidosParaEdicao(array $usuario): array
+{
+    if (in_array($usuario['perfil'], ['Desenvolvedor', 'Administrador'], true)) {
+        return ['Desenvolvedor'];
+    }
+
+    return perfisPermitidosParaCadastro();
+}
+
 function usuarioPodeAlterarRegistro(array $usuario): bool
 {
     if (usuarioEhDesenvolvedor()) {
@@ -245,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
                 }
             }
         }
-    } elseif (in_array($acao, ['ativar', 'desativar', 'excluir', 'salvar_permissoes'], true)) {
+    } elseif (in_array($acao, ['ativar', 'desativar', 'excluir', 'salvar_permissoes', 'editar_usuario', 'redefinir_senha'], true)) {
         $usuarioId = (int) ($_POST['usuario_id'] ?? 0);
         $usuario = $usuarioId > 0 ? buscarUsuario($pdo, $usuarioId) : null;
 
@@ -257,6 +266,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
             $erro = 'Voce nao pode alterar o status ou excluir o seu proprio acesso.';
         } elseif ($acao === 'salvar_permissoes' && $usuario['perfil'] !== 'Funcionario') {
             $erro = 'Permissoes finas sao usadas apenas para funcionarios.';
+        } elseif ($acao === 'editar_usuario') {
+            $nome = trim($_POST['nome'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $perfil = trim($_POST['perfil'] ?? '');
+            $ativo = ($_POST['ativo'] ?? '1') === '0' ? 0 : 1;
+            $perfisEdicao = perfisPermitidosParaEdicao($usuario);
+
+            if ($nome === '' || $email === '' || $perfil === '') {
+                $erro = 'Preencha nome, email e perfil para editar o usuario.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $erro = 'Informe um email valido.';
+            } elseif (!in_array($perfil, $perfisEdicao, true)) {
+                $erro = 'Seu usuario nao pode editar para esse perfil.';
+            } elseif (in_array($usuario['perfil'], ['Desenvolvedor', 'Administrador'], true)
+                && contarDesenvolvedoresAtivos($pdo) <= 1
+                && $ativo === 0
+            ) {
+                $erro = 'Nao e permitido desativar o ultimo desenvolvedor ativo.';
+            } else {
+                try {
+                    $stmt = $pdo->prepare("
+                        UPDATE usuarios
+                        SET nome = :nome,
+                            email = :email,
+                            perfil = :perfil,
+                            ativo = :ativo
+                        WHERE id = :id
+                    ");
+                    $stmt->execute([
+                        ':nome' => $nome,
+                        ':email' => $email,
+                        ':perfil' => $perfil,
+                        ':ativo' => $ativo,
+                        ':id' => $usuarioId,
+                    ]);
+                    $sucesso = 'Usuario atualizado com sucesso.';
+                } catch (PDOException $e) {
+                    $erro = $e->getCode() === '23000'
+                        ? 'Ja existe um usuario cadastrado com esse email.'
+                        : 'Nao foi possivel editar o usuario.';
+                }
+            }
+        } elseif ($acao === 'redefinir_senha') {
+            $novaSenha = (string) ($_POST['nova_senha'] ?? '');
+
+            if (!in_array($usuario['perfil'], ['Fazendeiro', 'Funcionario'], true)) {
+                $erro = 'Redefinicao de senha disponivel apenas para fazendeiros e funcionarios.';
+            } elseif (strlen($novaSenha) < 4) {
+                $erro = 'A nova senha deve ter pelo menos 4 caracteres.';
+            } else {
+                try {
+                    $stmt = $pdo->prepare("UPDATE usuarios SET senha_hash = :senha_hash WHERE id = :id");
+                    $stmt->execute([
+                        ':senha_hash' => password_hash($novaSenha, PASSWORD_DEFAULT),
+                        ':id' => $usuarioId,
+                    ]);
+                    $sucesso = 'Senha redefinida com sucesso.';
+                } catch (PDOException $e) {
+                    $erro = 'Nao foi possivel redefinir a senha.';
+                }
+            }
         } elseif (in_array($usuario['perfil'], ['Desenvolvedor', 'Administrador'], true)
             && contarDesenvolvedoresAtivos($pdo) <= 1
             && in_array($acao, ['desativar', 'excluir'], true)
@@ -510,6 +580,30 @@ layoutInicio('Usuarios');
                             <td>
                                 <?php if ($podeAlterar): ?>
                                     <div class="acoes-inline">
+                                        <form method="POST" action="" class="form-inline permissoes-inline">
+                                            <input type="hidden" name="acao" value="editar_usuario">
+                                            <input type="hidden" name="usuario_id" value="<?= (int) $usuario['id'] ?>">
+                                            <input type="text" name="nome" value="<?= htmlspecialchars($usuario['nome'], ENT_QUOTES, 'UTF-8') ?>" required>
+                                            <input type="email" name="email" value="<?= htmlspecialchars($usuario['email'], ENT_QUOTES, 'UTF-8') ?>" required>
+                                            <select name="perfil" required>
+                                                <?php foreach (perfisPermitidosParaEdicao($usuario) as $perfilOpcao): ?>
+                                                    <option value="<?= htmlspecialchars($perfilOpcao, ENT_QUOTES, 'UTF-8') ?>" <?= $usuario['perfil'] === $perfilOpcao ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($perfilOpcao, ENT_QUOTES, 'UTF-8') ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <select name="ativo" required>
+                                                <option value="1" <?= ((int) $usuario['ativo'] === 1) ? 'selected' : '' ?>>Ativo</option>
+                                                <option value="0" <?= ((int) $usuario['ativo'] === 0) ? 'selected' : '' ?>>Inativo</option>
+                                            </select>
+                                            <button type="submit" class="btn-tabela">Salvar usuario</button>
+                                        </form>
+                                        <form method="POST" action="" class="form-inline">
+                                            <input type="hidden" name="acao" value="redefinir_senha">
+                                            <input type="hidden" name="usuario_id" value="<?= (int) $usuario['id'] ?>">
+                                            <input type="password" name="nova_senha" placeholder="Nova senha" required>
+                                            <button type="submit" class="btn-tabela">Redefinir senha</button>
+                                        </form>
                                         <?php if ($usuario['perfil'] === 'Funcionario'): ?>
                                             <form method="POST" action="" class="form-inline permissoes-inline">
                                                 <input type="hidden" name="acao" value="salvar_permissoes">

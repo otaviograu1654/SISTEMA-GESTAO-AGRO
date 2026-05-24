@@ -121,6 +121,7 @@ CREATE TABLE IF NOT EXISTS financeiro (
     id INT AUTO_INCREMENT PRIMARY KEY,
     tipo VARCHAR(20) NOT NULL,
     parceiro_id INT NULL,
+    origem VARCHAR(50) NULL,
     categoria VARCHAR(100),
     descricao VARCHAR(255),
     valor DECIMAL(10,2) NOT NULL,
@@ -193,6 +194,9 @@ CREATE TABLE IF NOT EXISTS suporte_chamados (
     email_contato VARCHAR(150) NOT NULL,
     assunto VARCHAR(150) NOT NULL,
     mensagem TEXT NOT NULL,
+    resposta TEXT NULL,
+    respondido_por_id INT NULL,
+    respondido_em DATETIME NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'Aberto',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

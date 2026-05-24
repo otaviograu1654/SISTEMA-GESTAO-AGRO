@@ -38,6 +38,33 @@ function garantirEstruturaFinanceiro(PDO $pdo): void
     if (!$existe) {
         $pdo->exec("ALTER TABLE financeiro ADD COLUMN parceiro_id INT NULL AFTER tipo");
     }
+
+    $stmtOrigem = $pdo->query("SHOW COLUMNS FROM financeiro LIKE 'origem'");
+    $origemExiste = $stmtOrigem->fetch(PDO::FETCH_ASSOC);
+
+    if (!$origemExiste) {
+        $pdo->exec("ALTER TABLE financeiro ADD COLUMN origem VARCHAR(50) NULL AFTER parceiro_id");
+    }
+}
+
+function normalizarOrigemLancamento(string $origem): string
+{
+    $origem = trim($origem);
+    $permitidas = [
+        'Fluxo de caixa',
+        'Compra',
+        'Venda',
+        'Conta a pagar',
+        'Venda de animal',
+        'Lancamento a vista',
+        'Outro',
+    ];
+
+    if (in_array($origem, $permitidas, true)) {
+        return $origem;
+    }
+
+    return 'Outro';
 }
 
 try {
@@ -51,6 +78,7 @@ try {
                 f.id,
                 f.tipo,
                 f.parceiro_id,
+                f.origem,
                 p.nome AS parceiro_nome,
                 f.categoria,
                 f.descricao,
@@ -75,6 +103,7 @@ try {
 
         $tipo = normalizarTipoLancamento($entrada['tipo'] ?? '');
         $parceiro_id = (int) ($entrada['parceiro_id'] ?? 0);
+        $origem = normalizarOrigemLancamento($entrada['origem'] ?? 'Outro');
         $categoria = trim($entrada['categoria'] ?? '');
         $descricao = trim($entrada['descricao'] ?? '');
         $valor = trim((string) ($entrada['valor'] ?? ''));
@@ -119,6 +148,7 @@ try {
             INSERT INTO financeiro (
                 tipo,
                 parceiro_id,
+                origem,
                 categoria,
                 descricao,
                 valor,
@@ -126,6 +156,7 @@ try {
             ) VALUES (
                 :tipo,
                 :parceiro_id,
+                :origem,
                 :categoria,
                 :descricao,
                 :valor,
@@ -136,6 +167,7 @@ try {
         $stmt->execute([
             ':tipo' => $tipo,
             ':parceiro_id' => $parceiro_id > 0 ? $parceiro_id : null,
+            ':origem' => $origem,
             ':categoria' => $categoria !== '' ? $categoria : null,
             ':descricao' => $descricao !== '' ? $descricao : null,
             ':valor' => $valor,

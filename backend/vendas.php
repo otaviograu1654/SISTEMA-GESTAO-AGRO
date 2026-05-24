@@ -221,6 +221,7 @@ layoutInicio('Vendas');
 
             const dados = {
                 tipo: 'Receita',
+                origem: 'Venda',
                 categoria: document.getElementById('categoria').value,
                 descricao: document.getElementById('descricao').value.trim(),
                 valor: document.getElementById('valor').value,

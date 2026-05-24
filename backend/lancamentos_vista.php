@@ -230,6 +230,7 @@ layoutInicio('Lançamentos à vista');
 
             const dados = {
                 tipo: document.getElementById('tipo').value,
+                origem: 'Lancamento a vista',
                 categoria: document.getElementById('categoria').value,
                 descricao: document.getElementById('descricao').value.trim(),
                 valor: document.getElementById('valor').value,

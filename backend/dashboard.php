@@ -78,6 +78,13 @@ function badgeSanitario(string $status, ?string $proximaData): string
 }
 
 $errosDashboard = [];
+$podeCadastros = usuarioTemPermissaoModulo('cadastros');
+$podeMovimentacao = usuarioTemPermissaoModulo('movimentacao');
+$podeEstoque = usuarioTemPermissaoModulo('estoque');
+$podeFinanceiro = usuarioTemPermissaoModulo('financeiro');
+$podeUsuarios = usuarioPodeGerenciarUsuarios();
+$perfilFuncionario = usuarioAtualPerfil() === 'Funcionario';
+$dashboardGestor = !$perfilFuncionario;
 
 $rebanho = buscarResumo(
     $pdo,
@@ -86,7 +93,10 @@ $rebanho = buscarResumo(
             COUNT(*) AS total_animais,
             SUM(CASE WHEN LOWER(sexo) = 'macho' THEN 1 ELSE 0 END) AS machos,
             SUM(CASE WHEN LOWER(sexo) IN ('femea', 'fêmea') THEN 1 ELSE 0 END) AS femeas,
-            SUM(CASE WHEN prenha = 1 THEN 1 ELSE 0 END) AS prenhas
+            SUM(CASE WHEN prenha = 1 THEN 1 ELSE 0 END) AS prenhas,
+            SUM(CASE WHEN status = 'Ativo' THEN 1 ELSE 0 END) AS ativos,
+            SUM(CASE WHEN status = 'Vendido' THEN 1 ELSE 0 END) AS vendidos,
+            SUM(CASE WHEN status = 'Óbito' OR status = 'Ã“bito' THEN 1 ELSE 0 END) AS obitos
         FROM animais
     ",
     [
@@ -94,9 +104,32 @@ $rebanho = buscarResumo(
         'machos' => 0,
         'femeas' => 0,
         'prenhas' => 0,
+        'ativos' => 0,
+        'vendidos' => 0,
+        'obitos' => 0,
     ],
     $errosDashboard,
     'Não foi possível carregar o resumo do rebanho.'
+);
+
+$producaoLeite = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            COUNT(*) AS total_registros,
+            SUM(litros) AS total_litros,
+            SUM(CASE WHEN data_producao = CURDATE() THEN litros ELSE 0 END) AS litros_hoje,
+            AVG(litros) AS media_litros
+        FROM producao_leite
+    ",
+    [
+        'total_registros' => 0,
+        'total_litros' => 0,
+        'litros_hoje' => 0,
+        'media_litros' => 0,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar a produção de leite.'
 );
 
 $pesagens = buscarResumo(
@@ -236,6 +269,32 @@ $contas = buscarResumo(
     'Não foi possível carregar as contas a pagar.'
 );
 
+$estoqueResumo = buscarResumo(
+    $pdo,
+    "
+        SELECT
+            COUNT(*) AS total_produtos,
+            SUM(CASE WHEN ativo = 1 THEN 1 ELSE 0 END) AS produtos_ativos,
+            SUM(CASE WHEN quantidade_atual <= 0 THEN 1 ELSE 0 END) AS produtos_zerados,
+            SUM(
+                CASE
+                    WHEN validade IS NOT NULL
+                     AND validade BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+                    THEN 1 ELSE 0
+                END
+            ) AS vencendo_30_dias
+        FROM estoque_produtos
+    ",
+    [
+        'total_produtos' => 0,
+        'produtos_ativos' => 0,
+        'produtos_zerados' => 0,
+        'vencendo_30_dias' => 0,
+    ],
+    $errosDashboard,
+    'Não foi possível carregar o resumo de estoque.'
+);
+
 $sanitario = buscarResumo(
     $pdo,
     "
@@ -284,7 +343,7 @@ $usuarios = buscarResumo(
         SELECT
             COUNT(*) AS total_usuarios,
             SUM(CASE WHEN ativo = 1 THEN 1 ELSE 0 END) AS usuarios_ativos,
-            SUM(CASE WHEN perfil = 'Administrador' THEN 1 ELSE 0 END) AS administradores
+            SUM(CASE WHEN perfil IN ('Desenvolvedor', 'Administrador') THEN 1 ELSE 0 END) AS administradores
         FROM usuarios
     ",
     [
@@ -329,7 +388,7 @@ $animaisRecentes = buscarLista(
 $lancamentosRecentes = buscarLista(
     $pdo,
     "
-        SELECT tipo, categoria, descricao, valor, data_lancamento
+        SELECT tipo, origem, categoria, descricao, valor, data_lancamento
         FROM financeiro
         ORDER BY data_lancamento DESC, id DESC
         LIMIT 6
@@ -370,25 +429,166 @@ $agendaSanitaria = buscarLista(
     'Não foi possível carregar a agenda sanitária.'
 );
 
+$produtosAtencao = buscarLista(
+    $pdo,
+    "
+        SELECT nome, categoria, quantidade_atual, unidade, validade
+        FROM estoque_produtos
+        WHERE quantidade_atual <= 0
+           OR (
+                validade IS NOT NULL
+                AND validade BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+           )
+        ORDER BY
+            CASE WHEN quantidade_atual <= 0 THEN 0 ELSE 1 END,
+            validade ASC,
+            nome ASC
+        LIMIT 6
+    ",
+    $errosDashboard,
+    'Não foi possível carregar os produtos em atenção.'
+);
+
 $saldoFinanceiro = (float) $financeiro['total_receitas'] - (float) $financeiro['total_despesas'];
+$totalAnimais = (int) $rebanho['total_animais'];
+$animaisAtivos = (int) $rebanho['ativos'];
+$percentualAtivos = $totalAnimais > 0 ? ($animaisAtivos / $totalAnimais) * 100 : 0;
+$resultadoOperacional = $saldoFinanceiro >= 0 ? 'Superávit' : 'Déficit';
+$alertasGestor = [];
+$alertasInteligentes = [];
+
+if ((int) $contas['contas_atrasadas'] > 0) {
+    $alertasGestor[] = [
+        'titulo' => 'Contas atrasadas',
+        'descricao' => (int) $contas['contas_atrasadas'] . ' conta(s) vencida(s) precisam de atenção.',
+        'link' => 'contas_a_pagar.php',
+        'modulo' => 'financeiro',
+    ];
+}
+
+if ((int) $sanitario['vacinacoes_atrasadas'] > 0) {
+    $alertasGestor[] = [
+        'titulo' => 'Vacinações atrasadas',
+        'descricao' => (int) $sanitario['vacinacoes_atrasadas'] . ' pendência(s) sanitária(s) no rebanho.',
+        'link' => 'vacinacao.php',
+        'modulo' => 'movimentacao',
+    ];
+}
+
+if ((int) $estoqueResumo['produtos_zerados'] > 0) {
+    $alertasGestor[] = [
+        'titulo' => 'Estoque zerado',
+        'descricao' => (int) $estoqueResumo['produtos_zerados'] . ' produto(s) sem saldo atual.',
+        'link' => 'estoque.php',
+        'modulo' => 'estoque',
+    ];
+}
+
+if ((int) $estoqueResumo['vencendo_30_dias'] > 0) {
+    $alertasGestor[] = [
+        'titulo' => 'Validade próxima',
+        'descricao' => (int) $estoqueResumo['vencendo_30_dias'] . ' produto(s) vencem nos próximos 30 dias.',
+        'link' => 'estoque.php',
+        'modulo' => 'estoque',
+    ];
+}
+
+if ($podeFinanceiro && (int) $contas['contas_atrasadas'] > 0) {
+    $alertasInteligentes[] = [
+        'nivel' => 'Urgente',
+        'titulo' => 'Contas atrasadas',
+        'descricao' => (int) $contas['contas_atrasadas'] . ' conta(s) vencida(s) precisam de atenção.',
+        'link' => 'contas_a_pagar.php',
+    ];
+}
+
+if ($podeFinanceiro && (int) $contas['contas_semana'] > 0) {
+    $alertasInteligentes[] = [
+        'nivel' => 'Atenção',
+        'titulo' => 'Contas vencendo',
+        'descricao' => (int) $contas['contas_semana'] . ' conta(s) vencem nos próximos 7 dias.',
+        'link' => 'contas_a_pagar.php',
+    ];
+}
+
+if ($podeMovimentacao && (int) $sanitario['vacinacoes_atrasadas'] > 0) {
+    $alertasInteligentes[] = [
+        'nivel' => 'Urgente',
+        'titulo' => 'Vacinações atrasadas',
+        'descricao' => (int) $sanitario['vacinacoes_atrasadas'] . ' pendência(s) sanitária(s) no rebanho.',
+        'link' => 'vacinacao.php',
+    ];
+}
+
+if ($podeMovimentacao && (int) $sanitario['vacinacoes_proximas'] > 0) {
+    $alertasInteligentes[] = [
+        'nivel' => 'Atenção',
+        'titulo' => 'Vacinações próximas',
+        'descricao' => (int) $sanitario['vacinacoes_proximas'] . ' vacinação(ões) futuras para acompanhar.',
+        'link' => 'vacinacao.php',
+    ];
+}
+
+if ($podeEstoque && (int) $estoqueResumo['produtos_zerados'] > 0) {
+    $alertasInteligentes[] = [
+        'nivel' => 'Urgente',
+        'titulo' => 'Estoque zerado',
+        'descricao' => (int) $estoqueResumo['produtos_zerados'] . ' produto(s) sem saldo atual.',
+        'link' => 'estoque.php',
+    ];
+}
+
+if ($podeEstoque && (int) $estoqueResumo['vencendo_30_dias'] > 0) {
+    $alertasInteligentes[] = [
+        'nivel' => 'Atenção',
+        'titulo' => 'Validade próxima',
+        'descricao' => (int) $estoqueResumo['vencendo_30_dias'] . ' produto(s) vencem nos próximos 30 dias.',
+        'link' => 'estoque.php',
+    ];
+}
+
+if (usuarioEhDesenvolvedor() && (int) $suporte['chamados_abertos'] > 0) {
+    $alertasInteligentes[] = [
+        'nivel' => 'Atenção',
+        'titulo' => 'Chamados abertos',
+        'descricao' => (int) $suporte['chamados_abertos'] . ' chamado(s) aguardam atendimento.',
+        'link' => 'suporte.php',
+    ];
+}
 
 layoutInicio('Dashboard');
 ?>
 
 <div class="page-header dashboard-header">
     <div>
-        <h1>Dashboard geral</h1>
-        <p>Resumo consolidado dos módulos do backend com indicadores operacionais, financeiros e de cadastro.</p>
+        <h1><?= $perfilFuncionario ? 'Dashboard do funcionário' : 'Dashboard geral' ?></h1>
+        <p><?= $perfilFuncionario ? 'Resumo dos módulos liberados para sua rotina no sistema.' : 'Resumo consolidado dos módulos do backend com indicadores operacionais, financeiros e de cadastro.' ?></p>
     </div>
 
     <div class="top-actions">
-        <a class="btn-link" href="animais.php">Ver animais</a>
-        <a class="btn-link" href="pesagens.php">Registrar pesagem</a>
-        <a class="btn-link" href="vacinacao.php">Registrar vacinação</a>
-        <a class="btn-link" href="compras.php">Lançar compra</a>
-        <a class="btn-link" href="vendas.php">Lançar venda</a>
+        <?php if ($podeCadastros): ?>
+            <a class="btn-link" href="animais.php">Ver animais</a>
+        <?php endif; ?>
+        <?php if ($podeMovimentacao): ?>
+            <a class="btn-link" href="pesagens.php">Registrar pesagem</a>
+            <a class="btn-link" href="vacinacao.php">Registrar vacinação</a>
+            <a class="btn-link" href="producao_leite.php">Registrar leite</a>
+        <?php endif; ?>
+        <?php if ($podeEstoque): ?>
+            <a class="btn-link" href="estoque.php">Ver estoque</a>
+        <?php endif; ?>
+        <?php if ($podeFinanceiro): ?>
+            <a class="btn-link" href="compras.php">Lançar compra</a>
+            <a class="btn-link" href="vendas.php">Lançar venda</a>
+        <?php endif; ?>
     </div>
 </div>
+
+<?php if (!$podeCadastros && !$podeMovimentacao && !$podeEstoque && !$podeFinanceiro): ?>
+    <div class="mensagem erro mensagem-bloco">
+        Nenhum módulo foi liberado para este usuário. Solicite acesso ao gestor da fazenda.
+    </div>
+<?php endif; ?>
 
 <?php if (!empty($errosDashboard)): ?>
     <div class="mensagem erro mensagem-bloco">
@@ -396,6 +596,120 @@ layoutInicio('Dashboard');
     </div>
 <?php endif; ?>
 
+<?php if ($dashboardGestor): ?>
+<section class="dashboard-section">
+    <div class="section-title">
+        <h2>Visão executiva da fazenda</h2>
+        <p>Indicadores diretos para acompanhar operação, caixa e pontos de atenção do dia.</p>
+    </div>
+
+    <div class="cards dashboard-cards">
+        <?php if ($podeCadastros): ?>
+            <div class="card metric-card">
+                <h3>Rebanho ativo</h3>
+                <div class="value"><?= number_format($percentualAtivos, 0, ',', '.') ?>%</div>
+                <div class="metric-meta"><?= $animaisAtivos ?> de <?= $totalAnimais ?> animais ativos</div>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($podeFinanceiro): ?>
+            <div class="card metric-card">
+                <h3>Resultado financeiro</h3>
+                <div class="value value-money <?= $saldoFinanceiro >= 0 ? 'value-positive' : 'value-negative' ?>"><?= formatarMoeda($saldoFinanceiro) ?></div>
+                <div class="metric-meta"><?= $resultadoOperacional ?> acumulado no financeiro</div>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($podeMovimentacao): ?>
+            <div class="card metric-card">
+                <h3>Produção de leite hoje</h3>
+                <div class="value"><?= number_format((float) $producaoLeite['litros_hoje'], 1, ',', '.') ?> L</div>
+                <div class="metric-meta"><?= number_format((float) $producaoLeite['total_litros'], 1, ',', '.') ?> L registrados no total</div>
+            </div>
+        <?php endif; ?>
+
+        <div class="card metric-card">
+            <h3>Alertas prioritários</h3>
+            <div class="value"><?= count($alertasInteligentes) ?></div>
+            <div class="metric-meta"><?= empty($alertasInteligentes) ? 'Nenhuma pendência crítica no momento' : 'Pendências para revisar' ?></div>
+        </div>
+    </div>
+</section>
+
+<?php if (!empty($alertasInteligentes)): ?>
+<section class="panel panel-spaced">
+    <h2>Alertas inteligentes</h2>
+    <p>Itens priorizados conforme perfil e permissões do usuário.</p>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Alerta</th>
+                    <th>Resumo</th>
+                    <th>Nível</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($alertasInteligentes as $alerta): ?>
+                    <tr>
+                        <td><span class="badge badge-alerta"><?= htmlspecialchars($alerta['titulo'], ENT_QUOTES, 'UTF-8') ?></span></td>
+                        <td><?= htmlspecialchars($alerta['descricao'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td>
+                            <span class="badge <?= $alerta['nivel'] === 'Urgente' ? 'badge-erro' : 'badge-alerta' ?>">
+                                <?= htmlspecialchars($alerta['nivel'], ENT_QUOTES, 'UTF-8') ?>
+                            </span>
+                        </td>
+                        <td>
+                            <a class="btn-link" href="<?= htmlspecialchars($alerta['link'], ENT_QUOTES, 'UTF-8') ?>">Abrir módulo</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</section>
+<?php endif; ?>
+<?php endif; ?>
+
+<?php if (!$dashboardGestor && !empty($alertasInteligentes)): ?>
+<section class="panel panel-spaced">
+    <h2>Alertas inteligentes</h2>
+    <p>Itens priorizados conforme seus módulos liberados.</p>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Alerta</th>
+                    <th>Resumo</th>
+                    <th>Nível</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($alertasInteligentes as $alerta): ?>
+                    <tr>
+                        <td><span class="badge badge-alerta"><?= htmlspecialchars($alerta['titulo'], ENT_QUOTES, 'UTF-8') ?></span></td>
+                        <td><?= htmlspecialchars($alerta['descricao'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td>
+                            <span class="badge <?= $alerta['nivel'] === 'Urgente' ? 'badge-erro' : 'badge-alerta' ?>">
+                                <?= htmlspecialchars($alerta['nivel'], ENT_QUOTES, 'UTF-8') ?>
+                            </span>
+                        </td>
+                        <td>
+                            <a class="btn-link" href="<?= htmlspecialchars($alerta['link'], ENT_QUOTES, 'UTF-8') ?>">Abrir módulo</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</section>
+<?php endif; ?>
+
+<?php if ($podeCadastros || $podeMovimentacao): ?>
 <section class="dashboard-section">
     <div class="section-title">
         <h2>Rebanho e produção</h2>
@@ -403,6 +717,7 @@ layoutInicio('Dashboard');
     </div>
 
     <div class="cards dashboard-cards">
+        <?php if ($podeCadastros): ?>
         <div class="card metric-card">
             <h3>Total de animais</h3>
             <div class="value"><?= (int) $rebanho['total_animais'] ?></div>
@@ -423,6 +738,23 @@ layoutInicio('Dashboard');
             <div class="value"><?= (int) $rebanho['prenhas'] ?></div>
             <div class="metric-meta">Matrizes com prenhez marcada</div>
         </div>
+        <div class="card metric-card">
+            <h3>Ativos</h3>
+            <div class="value"><?= (int) $rebanho['ativos'] ?></div>
+            <div class="metric-meta">Animais atualmente no rebanho</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Vendidos</h3>
+            <div class="value"><?= (int) $rebanho['vendidos'] ?></div>
+            <div class="metric-meta">Baixas por venda registradas</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Óbitos</h3>
+            <div class="value"><?= (int) $rebanho['obitos'] ?></div>
+            <div class="metric-meta">Baixas por óbito registradas</div>
+        </div>
+        <?php endif; ?>
+        <?php if ($podeMovimentacao): ?>
         <div class="card metric-card">
             <h3>Total de pesagens</h3>
             <div class="value"><?= (int) $pesagens['total_pesagens'] ?></div>
@@ -445,9 +777,59 @@ layoutInicio('Dashboard');
                 <?= $ultimaPesagem['nome_apelido'] !== '' ? htmlspecialchars($ultimaPesagem['nome_apelido'], ENT_QUOTES, 'UTF-8') . ' em ' . formatarData($ultimaPesagem['data_pesagem']) : 'Nenhuma pesagem registrada' ?>
             </div>
         </div>
+        <div class="card metric-card">
+            <h3>Leite registrado</h3>
+            <div class="value"><?= number_format((float) $producaoLeite['total_litros'], 1, ',', '.') ?> L</div>
+            <div class="metric-meta"><?= (int) $producaoLeite['total_registros'] ?> registros de produção</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Leite hoje</h3>
+            <div class="value"><?= number_format((float) $producaoLeite['litros_hoje'], 1, ',', '.') ?> L</div>
+            <div class="metric-meta">Produção registrada no dia</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Média por registro</h3>
+            <div class="value"><?= number_format((float) $producaoLeite['media_litros'], 1, ',', '.') ?> L</div>
+            <div class="metric-meta">Média dos lançamentos de leite</div>
+        </div>
+        <?php endif; ?>
     </div>
 </section>
+<?php endif; ?>
 
+<?php if ($podeEstoque): ?>
+<section class="dashboard-section">
+    <div class="section-title">
+        <h2>Estoque</h2>
+        <p>Indicadores rápidos para acompanhar produtos e alertas operacionais.</p>
+    </div>
+
+    <div class="cards dashboard-cards">
+        <div class="card metric-card">
+            <h3>Produtos</h3>
+            <div class="value"><?= (int) $estoqueResumo['total_produtos'] ?></div>
+            <div class="metric-meta">Itens cadastrados no estoque</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Produtos ativos</h3>
+            <div class="value"><?= (int) $estoqueResumo['produtos_ativos'] ?></div>
+            <div class="metric-meta">Itens disponíveis para movimentação</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Estoque zerado</h3>
+            <div class="value"><?= (int) $estoqueResumo['produtos_zerados'] ?></div>
+            <div class="metric-meta">Produtos sem saldo atual</div>
+        </div>
+        <div class="card metric-card">
+            <h3>Vencendo em 30 dias</h3>
+            <div class="value"><?= (int) $estoqueResumo['vencendo_30_dias'] ?></div>
+            <div class="metric-meta">Produtos com validade próxima</div>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<?php if ($podeFinanceiro): ?>
 <section class="dashboard-section">
     <div class="section-title">
         <h2>Financeiro</h2>
@@ -517,7 +899,9 @@ layoutInicio('Dashboard');
         </div>
     </div>
 </section>
+<?php endif; ?>
 
+<?php if ($podeMovimentacao || $podeUsuarios || usuarioEhDesenvolvedor()): ?>
 <section class="dashboard-section">
     <div class="section-title">
         <h2>Sanidade, usuários e suporte</h2>
@@ -525,6 +909,7 @@ layoutInicio('Dashboard');
     </div>
 
     <div class="cards dashboard-cards">
+        <?php if ($podeMovimentacao): ?>
         <div class="card metric-card">
             <h3>Manejos sanitários</h3>
             <div class="value"><?= (int) $sanitario['total_manejos'] ?></div>
@@ -550,6 +935,8 @@ layoutInicio('Dashboard');
             <div class="value"><?= (int) $sanitario['vacinacoes_atrasadas'] ?></div>
             <div class="metric-meta">Pendências de sanidade</div>
         </div>
+        <?php endif; ?>
+        <?php if ($podeUsuarios): ?>
         <div class="card metric-card">
             <h3>Usuários ativos</h3>
             <div class="value"><?= (int) $usuarios['usuarios_ativos'] ?></div>
@@ -560,6 +947,8 @@ layoutInicio('Dashboard');
             <div class="value"><?= (int) $usuarios['administradores'] ?></div>
             <div class="metric-meta">Perfis com acesso administrativo</div>
         </div>
+        <?php endif; ?>
+        <?php if (usuarioEhDesenvolvedor()): ?>
         <div class="card metric-card">
             <h3>Chamados abertos</h3>
             <div class="value"><?= (int) $suporte['chamados_abertos'] ?></div>
@@ -570,10 +959,14 @@ layoutInicio('Dashboard');
             <div class="value"><?= (int) $suporte['chamados_hoje'] ?></div>
             <div class="metric-meta">Demandas abertas hoje</div>
         </div>
+        <?php endif; ?>
     </div>
 </section>
+<?php endif; ?>
 
+<?php if ($podeCadastros || $podeFinanceiro || $podeMovimentacao || $podeEstoque): ?>
 <div class="grid-panels dashboard-grid">
+    <?php if ($podeCadastros): ?>
     <section class="panel">
         <h2>Animais recentes</h2>
         <p>Últimos cadastros de animais no backend.</p>
@@ -609,7 +1002,9 @@ layoutInicio('Dashboard');
             </table>
         </div>
     </section>
+    <?php endif; ?>
 
+    <?php if ($podeFinanceiro): ?>
     <section class="panel">
         <h2>Lançamentos recentes</h2>
         <p>Movimentações mais novas do módulo financeiro.</p>
@@ -620,6 +1015,7 @@ layoutInicio('Dashboard');
                     <tr>
                         <th>Data</th>
                         <th>Tipo</th>
+                        <th>Origem</th>
                         <th>Categoria</th>
                         <th>Valor</th>
                     </tr>
@@ -627,13 +1023,14 @@ layoutInicio('Dashboard');
                 <tbody>
                     <?php if (empty($lancamentosRecentes)): ?>
                         <tr>
-                            <td colspan="4">Nenhum lançamento financeiro encontrado.</td>
+                            <td colspan="5">Nenhum lançamento financeiro encontrado.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($lancamentosRecentes as $lancamento): ?>
                             <tr>
                                 <td><?= formatarData($lancamento['data_lancamento']) ?></td>
                                 <td><?= htmlspecialchars($lancamento['tipo'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($lancamento['origem'] ?: '-', ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($lancamento['categoria'] ?: '-', ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= formatarMoeda((float) $lancamento['valor']) ?></td>
                             </tr>
@@ -681,7 +1078,9 @@ layoutInicio('Dashboard');
             </table>
         </div>
     </section>
+    <?php endif; ?>
 
+    <?php if ($podeMovimentacao): ?>
     <section class="panel">
         <h2>Agenda sanitária</h2>
         <p>Próximos eventos e situação dos registros sanitários.</p>
@@ -719,6 +1118,44 @@ layoutInicio('Dashboard');
             </table>
         </div>
     </section>
+    <?php endif; ?>
+
+    <?php if ($podeEstoque): ?>
+    <section class="panel">
+        <h2>Estoque em atenção</h2>
+        <p>Produtos sem saldo ou com validade próxima.</p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Categoria</th>
+                        <th>Saldo</th>
+                        <th>Validade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($produtosAtencao)): ?>
+                        <tr>
+                            <td colspan="4">Nenhum produto em atenção.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($produtosAtencao as $produto): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($produto['categoria'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= number_format((float) $produto['quantidade_atual'], 2, ',', '.') . ' ' . htmlspecialchars($produto['unidade'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= formatarData($produto['validade']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <?php endif; ?>
 </div>
+<?php endif; ?>
 
 <?php layoutFim(); ?>

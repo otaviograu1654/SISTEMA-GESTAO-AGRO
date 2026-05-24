@@ -174,6 +174,9 @@ require_once __DIR__ . '/includes/layout.php';
 $erroPagina = '';
 $animais = [];
 $ultimasAlteracoes = [];
+$racasFiltro = [];
+$lotesFiltro = [];
+$sexosFiltro = [];
 $resumo = [
     'total' => 0,
     'machos' => 0,
@@ -187,7 +190,22 @@ try {
 
     foreach ($animais as $animal) {
         $sexo = mb_strtolower((string) ($animal['sexo'] ?? ''), 'UTF-8');
+        $racaFiltro = trim((string) ($animal['raca'] ?? ''));
+        $loteFiltro = trim((string) ($animal['lote'] ?? ''));
+        $sexoFiltro = trim((string) ($animal['sexo'] ?? ''));
         $resumo['total']++;
+
+        if ($racaFiltro !== '') {
+            $racasFiltro[$racaFiltro] = $racaFiltro;
+        }
+
+        if ($loteFiltro !== '') {
+            $lotesFiltro[$loteFiltro] = $loteFiltro;
+        }
+
+        if ($sexoFiltro !== '') {
+            $sexosFiltro[$sexoFiltro] = $sexoFiltro;
+        }
 
         if ($sexo === 'macho') {
             $resumo['machos']++;
@@ -201,6 +219,10 @@ try {
             $resumo['prenhas']++;
         }
     }
+
+    natcasesort($racasFiltro);
+    natcasesort($lotesFiltro);
+    natcasesort($sexosFiltro);
 } catch (PDOException $e) {
     $erroPagina = 'Não foi possível carregar os animais cadastrados.';
 }
@@ -252,11 +274,47 @@ layoutInicio('Animais');
 <div class="panel-spaced">
     <section class="panel">
         <h2>Rebanho cadastrado</h2>
-        <p>Use a busca para encontrar rapidamente por brinco, nome, raça, lote ou sexo.</p>
+        <p>Use os filtros para encontrar rapidamente por brinco, nome, sexo, raça, lote e status.</p>
 
         <div class="form-group busca-animais">
             <label for="buscaAnimais">Buscar animal</label>
             <input type="text" id="buscaAnimais" placeholder="Ex: 4052, Estrela, Nelore, lote A...">
+        </div>
+
+        <div class="form-group busca-animais">
+            <label for="filtroSexoAnimais">Filtrar por sexo</label>
+            <select id="filtroSexoAnimais">
+                <option value="">Todos</option>
+                <?php foreach ($sexosFiltro as $sexoOpcao): ?>
+                    <option value="<?= htmlspecialchars($sexoOpcao, ENT_QUOTES, 'UTF-8') ?>">
+                        <?= htmlspecialchars($sexoOpcao, ENT_QUOTES, 'UTF-8') ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="form-group busca-animais">
+            <label for="filtroRacaAnimais">Filtrar por raça</label>
+            <select id="filtroRacaAnimais">
+                <option value="">Todas</option>
+                <?php foreach ($racasFiltro as $racaOpcao): ?>
+                    <option value="<?= htmlspecialchars($racaOpcao, ENT_QUOTES, 'UTF-8') ?>">
+                        <?= htmlspecialchars($racaOpcao, ENT_QUOTES, 'UTF-8') ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="form-group busca-animais">
+            <label for="filtroLoteAnimais">Filtrar por lote</label>
+            <select id="filtroLoteAnimais">
+                <option value="">Todos</option>
+                <?php foreach ($lotesFiltro as $loteOpcao): ?>
+                    <option value="<?= htmlspecialchars($loteOpcao, ENT_QUOTES, 'UTF-8') ?>">
+                        <?= htmlspecialchars($loteOpcao, ENT_QUOTES, 'UTF-8') ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
 
         <div class="form-group busca-animais">
@@ -294,6 +352,9 @@ layoutInicio('Animais');
                             <tr
                                 data-animal-texto="<?= htmlspecialchars(mb_strtolower(trim(($animal['brinco'] ?? '') . ' ' . ($animal['nome_apelido'] ?? '') . ' ' . ($animal['raca'] ?? '') . ' ' . ($animal['lote'] ?? '') . ' ' . ($animal['sexo'] ?? '') . ' ' . $statusLinha), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>"
                                 data-animal-status="<?= htmlspecialchars(mb_strtolower($statusLinha, 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>"
+                                data-animal-sexo="<?= htmlspecialchars(mb_strtolower((string) ($animal['sexo'] ?? ''), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>"
+                                data-animal-raca="<?= htmlspecialchars(mb_strtolower((string) ($animal['raca'] ?? ''), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>"
+                                data-animal-lote="<?= htmlspecialchars(mb_strtolower((string) ($animal['lote'] ?? ''), 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>"
                             >
                                 <td><?= htmlspecialchars($animal['brinco'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($animal['nome_apelido'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -377,21 +438,33 @@ layoutInicio('Animais');
     }
 
     const buscaAnimais = document.getElementById('buscaAnimais');
+    const filtroSexoAnimais = document.getElementById('filtroSexoAnimais');
+    const filtroRacaAnimais = document.getElementById('filtroRacaAnimais');
+    const filtroLoteAnimais = document.getElementById('filtroLoteAnimais');
     const filtroStatusAnimais = document.getElementById('filtroStatusAnimais');
     const linhasAnimais = Array.from(document.querySelectorAll('#tabelaAnimais tr[data-animal-texto]'));
     const semResultado = document.getElementById('semResultado');
 
     function filtrarAnimais() {
         const termo = buscaAnimais ? normalizarTexto(buscaAnimais.value.trim()) : '';
+        const sexo = filtroSexoAnimais ? normalizarTexto(filtroSexoAnimais.value) : '';
+        const raca = filtroRacaAnimais ? normalizarTexto(filtroRacaAnimais.value) : '';
+        const lote = filtroLoteAnimais ? normalizarTexto(filtroLoteAnimais.value) : '';
         const status = filtroStatusAnimais ? normalizarTexto(filtroStatusAnimais.value) : '';
         let visiveis = 0;
 
         linhasAnimais.forEach(function (linha) {
             const texto = linha.getAttribute('data-animal-texto') || '';
+            const sexoLinha = normalizarTexto(linha.getAttribute('data-animal-sexo') || '');
+            const racaLinha = normalizarTexto(linha.getAttribute('data-animal-raca') || '');
+            const loteLinha = normalizarTexto(linha.getAttribute('data-animal-lote') || '');
             const statusLinha = normalizarTexto(linha.getAttribute('data-animal-status') || '');
             const bateTexto = termo === '' || texto.includes(termo);
+            const bateSexo = sexo === '' || sexoLinha === sexo;
+            const bateRaca = raca === '' || racaLinha === raca;
+            const bateLote = lote === '' || loteLinha === lote;
             const bateStatus = status === '' || statusLinha === status;
-            const mostrar = bateTexto && bateStatus;
+            const mostrar = bateTexto && bateSexo && bateRaca && bateLote && bateStatus;
 
             linha.style.display = mostrar ? '' : 'none';
 
@@ -407,6 +480,18 @@ layoutInicio('Animais');
 
     if (buscaAnimais) {
         buscaAnimais.addEventListener('input', filtrarAnimais);
+    }
+
+    if (filtroSexoAnimais) {
+        filtroSexoAnimais.addEventListener('change', filtrarAnimais);
+    }
+
+    if (filtroRacaAnimais) {
+        filtroRacaAnimais.addEventListener('change', filtrarAnimais);
+    }
+
+    if (filtroLoteAnimais) {
+        filtroLoteAnimais.addEventListener('change', filtrarAnimais);
     }
 
     if (filtroStatusAnimais) {

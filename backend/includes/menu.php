@@ -80,7 +80,7 @@ $podeFinanceiro = usuarioTemPermissaoModulo('financeiro');
                 <ul id="submenu-cadastros" class="submenu" style="display: <?= $cadastrosAberto ? 'block' : 'none' ?>;">
                     <?php if ($podeCadastros): ?>
                         <li><a href="animais.php" class="<?= estaAtiva($paginasAnimais, $paginaAtual) ? 'active' : '' ?>">Animais</a></li>
-                        <li><a href="racas.php" class="<?= $paginaAtual === 'racas.php' ? 'active' : '' ?>">Racas</a></li>
+                        <li><a href="racas.php" class="<?= $paginaAtual === 'racas.php' ? 'active' : '' ?>">Raças</a></li>
                         <li><a href="lotes.php" class="<?= $paginaAtual === 'lotes.php' ? 'active' : '' ?>">Lotes</a></li>
                         <li><a href="parceiros.php" class="<?= $paginaAtual === 'parceiros.php' ? 'active' : '' ?>">Parceiros</a></li>
                     <?php endif; ?>
@@ -92,7 +92,7 @@ $podeFinanceiro = usuarioTemPermissaoModulo('financeiro');
         <?php endif; ?>
 
         <?php if ($podeMovimentacao || $podeEstoque): ?>
-            <div class="menu-title">Movimentacao</div>
+            <div class="menu-title">Movimentação</div>
 
             <div class="menu-item">
                 <a href="#"
@@ -100,7 +100,7 @@ $podeFinanceiro = usuarioTemPermissaoModulo('financeiro');
                    onclick="toggleSubMenu('submenu-movimentacao', this); return false;">
                     <span>
                         <i class="fa-solid fa-truck-ramp-box"></i>
-                        Movimentacao
+                        Movimentação
                     </span>
                     <span class="setinha">v</span>
                 </a>
@@ -108,8 +108,8 @@ $podeFinanceiro = usuarioTemPermissaoModulo('financeiro');
                 <ul id="submenu-movimentacao" class="submenu" style="display: <?= $movimentacaoAberto ? 'block' : 'none' ?>;">
                     <?php if ($podeMovimentacao): ?>
                         <li><a href="pesagens.php" class="<?= $paginaAtual === 'pesagens.php' ? 'active' : '' ?>">Pesagens</a></li>
-                        <li><a href="vacinacao.php" class="<?= $paginaAtual === 'vacinacao.php' ? 'active' : '' ?>">Vacinacao</a></li>
-                        <li><a href="producao_leite.php" class="<?= $paginaAtual === 'producao_leite.php' ? 'active' : '' ?>">Producao de leite</a></li>
+                        <li><a href="vacinacao.php" class="<?= $paginaAtual === 'vacinacao.php' ? 'active' : '' ?>">Vacinação</a></li>
+                        <li><a href="producao_leite.php" class="<?= $paginaAtual === 'producao_leite.php' ? 'active' : '' ?>">Produção de leite</a></li>
                     <?php endif; ?>
                     <?php if ($podeEstoque): ?>
                         <li><a href="estoque.php" class="<?= $paginaAtual === 'estoque.php' ? 'active' : '' ?>">Estoque</a></li>
@@ -136,7 +136,7 @@ $podeFinanceiro = usuarioTemPermissaoModulo('financeiro');
                     <li><a href="plano_contas.php" class="<?= $paginaAtual === 'plano_contas.php' ? 'active' : '' ?>">Plano de contas</a></li>
                     <li><a href="compras.php" class="<?= $paginaAtual === 'compras.php' ? 'active' : '' ?>">Compras</a></li>
                     <li><a href="vendas.php" class="<?= $paginaAtual === 'vendas.php' ? 'active' : '' ?>">Vendas</a></li>
-                    <li><a href="lancamentos_vista.php" class="<?= $paginaAtual === 'lancamentos_vista.php' ? 'active' : '' ?>">Lancamentos a vista</a></li>
+                    <li><a href="lancamentos_vista.php" class="<?= $paginaAtual === 'lancamentos_vista.php' ? 'active' : '' ?>">Lançamentos à vista</a></li>
                     <li><a href="contas_a_pagar.php" class="<?= $paginaAtual === 'contas_a_pagar.php' ? 'active' : '' ?>">Contas a pagar</a></li>
                     <li><a href="fluxo_caixa.php" class="<?= $paginaAtual === 'fluxo_caixa.php' ? 'active' : '' ?>">Fluxo de caixa</a></li>
                 </ul>

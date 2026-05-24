@@ -80,6 +80,106 @@ try {
     die('Erro ao buscar animal: ' . $e->getMessage());
 }
 
+$historicoAnimal = [];
+
+try {
+    $stmtAlteracoes = $pdo->prepare("
+        SELECT tipo_alteracao, descricao, created_at
+        FROM animal_alteracoes
+        WHERE animal_id = :id
+        ORDER BY created_at DESC, id DESC
+    ");
+    $stmtAlteracoes->execute([':id' => $id]);
+
+    foreach ($stmtAlteracoes->fetchAll(PDO::FETCH_ASSOC) as $alteracao) {
+        $historicoAnimal[] = [
+            'data' => substr((string) $alteracao['created_at'], 0, 10),
+            'tipo' => ucfirst((string) $alteracao['tipo_alteracao']),
+            'descricao' => (string) $alteracao['descricao'],
+        ];
+    }
+
+    $stmtPesagens = $pdo->prepare("
+        SELECT data_pesagem, peso_kg, observacao
+        FROM pesagens
+        WHERE animal_id = :id
+        ORDER BY data_pesagem DESC, id DESC
+    ");
+    $stmtPesagens->execute([':id' => $id]);
+
+    foreach ($stmtPesagens->fetchAll(PDO::FETCH_ASSOC) as $pesagem) {
+        $historicoAnimal[] = [
+            'data' => (string) $pesagem['data_pesagem'],
+            'tipo' => 'Pesagem',
+            'descricao' => 'Peso registrado: ' . number_format((float) $pesagem['peso_kg'], 2, ',', '.') . ' kg' . (!empty($pesagem['observacao']) ? ' - ' . $pesagem['observacao'] : ''),
+        ];
+    }
+
+    $stmtManejos = $pdo->prepare("
+        SELECT tipo, descricao, data_evento, proxima_data, status
+        FROM manejos_sanitarios
+        WHERE animal_id = :id
+        ORDER BY data_evento DESC, id DESC
+    ");
+    $stmtManejos->execute([':id' => $id]);
+
+    foreach ($stmtManejos->fetchAll(PDO::FETCH_ASSOC) as $manejo) {
+        $detalhesManejo = trim((string) ($manejo['descricao'] ?? ''));
+
+        if (!empty($manejo['status'])) {
+            $detalhesManejo .= ($detalhesManejo !== '' ? ' - ' : '') . 'Status: ' . $manejo['status'];
+        }
+
+        if (!empty($manejo['proxima_data'])) {
+            $detalhesManejo .= ($detalhesManejo !== '' ? ' - ' : '') . 'Próxima data: ' . formatarDataDetalhe($manejo['proxima_data']);
+        }
+
+        $historicoAnimal[] = [
+            'data' => (string) $manejo['data_evento'],
+            'tipo' => (string) $manejo['tipo'],
+            'descricao' => $detalhesManejo !== '' ? $detalhesManejo : 'Manejo registrado.',
+        ];
+    }
+
+    $stmtLeite = $pdo->prepare("
+        SELECT data_producao, turno, litros, observacao
+        FROM producao_leite
+        WHERE animal_id = :id
+        ORDER BY data_producao DESC, id DESC
+    ");
+    $stmtLeite->execute([':id' => $id]);
+
+    foreach ($stmtLeite->fetchAll(PDO::FETCH_ASSOC) as $producao) {
+        $historicoAnimal[] = [
+            'data' => (string) $producao['data_producao'],
+            'tipo' => 'Produção de leite',
+            'descricao' => number_format((float) $producao['litros'], 2, ',', '.') . ' litros no turno ' . $producao['turno'] . (!empty($producao['observacao']) ? ' - ' . $producao['observacao'] : ''),
+        ];
+    }
+
+    if ($vendaAnimal) {
+        $historicoAnimal[] = [
+            'data' => (string) $vendaAnimal['data_venda'],
+            'tipo' => 'Venda',
+            'descricao' => 'Venda para ' . ($vendaAnimal['parceiro_nome'] ?: $vendaAnimal['comprador_nome']) . ' por ' . ($vendaAnimal['valor'] !== null ? 'R$ ' . number_format((float) $vendaAnimal['valor'], 2, ',', '.') : 'valor não informado'),
+        ];
+    }
+
+    if ($obitoAnimal) {
+        $historicoAnimal[] = [
+            'data' => (string) $obitoAnimal['data_obito'],
+            'tipo' => 'Óbito',
+            'descricao' => trim((string) (($obitoAnimal['causa'] ?? '') . (!empty($obitoAnimal['observacao']) ? ' - ' . $obitoAnimal['observacao'] : ''))) ?: 'Óbito registrado.',
+        ];
+    }
+
+    usort($historicoAnimal, function ($a, $b) {
+        return strcmp((string) $b['data'], (string) $a['data']);
+    });
+} catch (PDOException $e) {
+    $historicoAnimal = [];
+}
+
 function textoSeguro($valor): string
 {
     return htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
@@ -277,6 +377,37 @@ layoutInicio('Detalhes do animal');
             </div>
         </section>
     <?php endif; ?>
+
+    <section class="panel">
+        <h2>Histórico do animal</h2>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($historicoAnimal)): ?>
+                        <tr>
+                            <td colspan="3">Nenhum histórico registrado para este animal.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($historicoAnimal as $itemHistorico): ?>
+                            <tr>
+                                <td><?= formatarDataDetalhe($itemHistorico['data']) ?></td>
+                                <td><?= textoSeguro($itemHistorico['tipo']) ?></td>
+                                <td><?= textoSeguro($itemHistorico['descricao']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>
 
 <?php layoutFim(); ?>

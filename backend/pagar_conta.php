@@ -3,6 +3,21 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/db.php';
 exigirPermissaoModulo('financeiro');
 
+function garantirOrigemFinanceiro(PDO $pdo): void
+{
+    $stmtParceiro = $pdo->query("SHOW COLUMNS FROM financeiro LIKE 'parceiro_id'");
+
+    if (!$stmtParceiro->fetch(PDO::FETCH_ASSOC)) {
+        $pdo->exec("ALTER TABLE financeiro ADD COLUMN parceiro_id INT NULL AFTER tipo");
+    }
+
+    $stmt = $pdo->query("SHOW COLUMNS FROM financeiro LIKE 'origem'");
+
+    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+        $pdo->exec("ALTER TABLE financeiro ADD COLUMN origem VARCHAR(50) NULL AFTER parceiro_id");
+    }
+}
+
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if ($id <= 0) {
@@ -11,6 +26,8 @@ if ($id <= 0) {
 }
 
 try {
+    garantirOrigemFinanceiro($pdo);
+
     $stmt = $pdo->prepare("SELECT * FROM tabelacontas WHERE id = :id LIMIT 1");
     $stmt->execute([':id' => $id]);
     $conta = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -33,12 +50,14 @@ try {
     $stmtFinanceiro = $pdo->prepare("
         INSERT INTO financeiro (
             tipo,
+            origem,
             categoria,
             descricao,
             valor,
             data_lancamento
         ) VALUES (
             :tipo,
+            :origem,
             :categoria,
             :descricao,
             :valor,
@@ -48,6 +67,7 @@ try {
 
     $stmtFinanceiro->execute([
         ':tipo' => 'Despesa',
+        ':origem' => 'Conta a pagar',
         ':categoria' => $conta['natureza'],
         ':descricao' => 'Pagamento de conta: ' . $conta['descricao'],
         ':valor' => $conta['valor'],

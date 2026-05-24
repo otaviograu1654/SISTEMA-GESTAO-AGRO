@@ -361,6 +361,7 @@ layoutInicio('Compras');
             const dados = {
                 tipo: 'Despesa',
                 parceiro_id: parceiroId,
+                origem: 'Compra',
                 categoria: document.getElementById('categoria').value,
                 descricao: montarDescricaoCompra({
                     fornecedor,

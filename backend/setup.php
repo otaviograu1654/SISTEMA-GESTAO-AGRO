@@ -203,6 +203,7 @@ function garantirEstruturaFinanceiro(PDO $pdo, string $banco): void
             id INT AUTO_INCREMENT PRIMARY KEY,
             tipo VARCHAR(20) NOT NULL,
             parceiro_id INT NULL,
+            origem VARCHAR(50) NULL,
             categoria VARCHAR(100),
             descricao VARCHAR(255),
             valor DECIMAL(10,2) NOT NULL,
@@ -214,6 +215,10 @@ function garantirEstruturaFinanceiro(PDO $pdo, string $banco): void
 
     if (!colunaExiste($pdo, 'financeiro', 'parceiro_id', $banco)) {
         $pdo->exec("ALTER TABLE financeiro ADD COLUMN parceiro_id INT NULL AFTER tipo");
+    }
+
+    if (!colunaExiste($pdo, 'financeiro', 'origem', $banco)) {
+        $pdo->exec("ALTER TABLE financeiro ADD COLUMN origem VARCHAR(50) NULL AFTER parceiro_id");
     }
 }
 
@@ -313,6 +318,9 @@ function garantirEstruturaSuporte(PDO $pdo, string $banco): void
             email_contato VARCHAR(150) NOT NULL,
             assunto VARCHAR(150) NOT NULL,
             mensagem TEXT NOT NULL,
+            resposta TEXT NULL,
+            respondido_por_id INT NULL,
+            respondido_em DATETIME NULL,
             status VARCHAR(50) NOT NULL DEFAULT 'Aberto',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -320,6 +328,18 @@ function garantirEstruturaSuporte(PDO $pdo, string $banco): void
 
     if (!colunaExiste($pdo, 'suporte_chamados', 'status', $banco)) {
         $pdo->exec("ALTER TABLE suporte_chamados ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Aberto'");
+    }
+
+    if (!colunaExiste($pdo, 'suporte_chamados', 'resposta', $banco)) {
+        $pdo->exec("ALTER TABLE suporte_chamados ADD COLUMN resposta TEXT NULL AFTER mensagem");
+    }
+
+    if (!colunaExiste($pdo, 'suporte_chamados', 'respondido_por_id', $banco)) {
+        $pdo->exec("ALTER TABLE suporte_chamados ADD COLUMN respondido_por_id INT NULL AFTER resposta");
+    }
+
+    if (!colunaExiste($pdo, 'suporte_chamados', 'respondido_em', $banco)) {
+        $pdo->exec("ALTER TABLE suporte_chamados ADD COLUMN respondido_em DATETIME NULL AFTER respondido_por_id");
     }
 }
 try {
