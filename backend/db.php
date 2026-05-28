@@ -13,6 +13,7 @@ try {
     // Configura o PDO para mostrar erros como exceções, facilitando depuração.
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    // Se a conexão falhar, mostra a mensagem de erro e interrompe a execução.
-    die("Erro na conexão: " . $e->getMessage());
+    error_log("Erro na conexão com o banco: " . $e->getMessage());
+    http_response_code(500);
+    die("Nao foi possivel conectar ao banco de dados agora.");
 }

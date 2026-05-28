@@ -367,13 +367,144 @@ Feito:
 - alertas exibem nível de prioridade e link direto para o módulo correspondente
 - validado dashboard do gestor e dashboard do funcionário com permissões restritas
 
-## Fase 26 - Backup, auditoria e segurança base
+## Fase 26 - Backup simples do banco
+Status: concluída
+
+Objetivo:
+- permitir gerar uma cópia dos dados principais do sistema
+- dar mais segurança antes de usar em demonstração ou em uma fazenda real
+- criar uma rotina simples que funcione no ambiente local/XAMPP
+
+Fazer:
+- criar tela restrita para gestor/desenvolvedor gerar backup
+- exportar tabelas principais em arquivo SQL ou formato compatível para restauração
+- registrar data, usuário e nome do arquivo gerado
+- orientar visualmente o usuário quando o backup for concluído
+
+Feito:
+- criada tela `backend/backup.php` restrita a desenvolvedor e fazendeiro
+- backup exporta as tabelas principais em arquivo SQL
+- arquivos ficam em `storage/backups`, fora da pasta backend, com bloqueio de acesso direto por `.htaccess`
+- criada tabela `backup_registros` para registrar usuário, data, arquivo e tamanho do backup
+- adicionada opção Backup no menu Conta para perfis autorizados
+- `database/schema.sql` e `backend/setup.php` passaram a incluir a estrutura de backups
+
+## Fase 31 - Auditoria de ações importantes
+Status: concluída
+
+Objetivo:
+- registrar quem criou, editou, pagou, vendeu, desativou ou excluiu dados importantes
+- aumentar a confiança do produtor nas informações do sistema
+- facilitar suporte e conferência quando algo for alterado por engano
+
+Fazer:
+- criar tabela de auditoria do sistema
+- criar função/helper para registrar auditoria
+- auditar alterações em usuários, financeiro, animais, estoque e suporte
+- exibir uma listagem simples de auditoria para gestor/desenvolvedor
+
+Feito:
+- criada tabela `auditoria_sistema`
+- criado helper `backend/includes/auditoria.php` para registrar ações importantes
+- criada tela `backend/auditoria.php` com filtros por ação, módulo e usuário
+- adicionada opção Auditoria no menu Conta para desenvolvedor/fazendeiro
+- auditoria integrada em usuários, financeiro, fluxo de caixa, estoque, pagamento de contas, venda/óbito/edição/exclusão de animais, suporte e backup
+- `database/schema.sql` e `backend/setup.php` passaram a incluir a estrutura de auditoria
+- validado acesso do desenvolvedor, bloqueio do funcionário e registro de auditoria via geração de backup
+
+## Fase 32 - Segurança base para MVP
+Status: concluída
+
+Objetivo:
+- reduzir riscos básicos antes da apresentação final
+- evitar exposição de erros técnicos para o usuário comum
+- reforçar controles de acesso já existentes
+
+Fazer:
+- revisar páginas principais protegidas por login
+- revisar permissões por perfil nos módulos mais sensíveis
+- trocar mensagens técnicas por mensagens amigáveis quando fizer sentido
+- proteger operações críticas contra acesso indevido
+- manter o último desenvolvedor ativo protegido
+
+Feito:
+- sessão passou a usar cookie `HttpOnly`, `SameSite=Lax` e renovação de ID no login
+- adicionada expiração simples de sessão por inatividade
+- mensagens de acesso negado ficaram mais claras para usuário comum
+- `setup.php` passou a ser bloqueado para usuários não desenvolvedores quando o sistema já possui usuários
+- mensagens técnicas de banco deixaram de aparecer nas principais telas/endpoints e passaram a ir para `error_log`
+- ações financeiras de salvar/excluir/pagar conta passaram a redirecionar com erro amigável em caso de falha
+- validação do valor de contas a pagar foi reforçada
+- criação e exclusão de contas a pagar passaram a registrar auditoria
+- validado login do admin, telas principais, bloqueio do funcionário e bloqueio do setup sem login
+
+## Fase 33 - Revisão final para apresentação/MVP
+Status: concluída
+
+Objetivo:
+- deixar o sistema pronto para ser demonstrado ao produtor
+- limpar dados de teste que atrapalhem a apresentação
+- validar o fluxo principal do gestor de ponta a ponta
+
+Fazer:
+- revisar login, dashboard, animais, estoque, financeiro, suporte e usuários
+- testar cadastro, edição, movimentação, venda, pagamento e alertas
+- conferir textos, estados vazios e mensagens de sucesso/erro
+- preparar uma massa de dados de demonstração coerente
+- anotar limitações que ficarão para depois do MVP
+
+Feito:
+- validado acesso web das telas principais do gestor/desenvolvedor
+- revisados login, dashboard, animais, cadastro de animal, estoque, contas a pagar, fluxo de caixa, usuários, suporte, auditoria e backup
+- adicionada mensagem amigável para erros de operação em contas a pagar
+- criado documento `docs/revisao_mvp_final.md` com resultado da revisão, pontos fortes, limites do MVP e roteiro de apresentação
+- contado o tamanho do código do projeto, excluindo documentação/anotações
+- confirmada a próxima frente recomendada: colocar o MVP online para teste em celular e depois seguir com recuperação de senha/relatórios
+
+## Fase 34 - Publicar online para teste no celular
 Status: pendente
 
 Objetivo:
-- criar rotina simples de backup
-- registrar quem criou, editou ou desativou registros importantes
-- reforçar segurança e confiabilidade para apresentação e uso real
+- colocar o MVP em uma hospedagem PHP/MySQL com link público
+- permitir abrir o sistema no celular sem depender do XAMPP local
+- preparar uma demonstração mais forte para o produtor e para o trabalho final
+
+Opção recomendada:
+- começar pelo InfinityFree, porque é grátis, aceita PHP/MySQL e combina melhor com o projeto atual em PHP puro
+- usar AwardSpace como segunda opção grátis se o InfinityFree ficar limitado ou instável
+- deixar Railway como opção mais moderna, mas ele funciona mais como trial/créditos e pode exigir mais ajustes
+- para venda real depois do MVP, migrar para uma hospedagem paga simples com cPanel ou VPS/cloud
+
+Passo a passo:
+1. Criar conta no InfinityFree para o primeiro teste grátis.
+2. Se o InfinityFree não atender, testar AwardSpace como alternativa grátis.
+3. Se quiser algo mais próximo de Render/Railway, testar Railway sabendo que pode depender de créditos/trial.
+4. Em caso de uso real/venda, escolher hospedagem paga com PHP 8+, MySQL/MariaDB, phpMyAdmin e acesso a arquivos, como Hostinger, Locaweb, KingHost, HostGator ou Alwaysdata.
+5. Criar o banco de dados MySQL/MariaDB no painel da hospedagem.
+6. Anotar host, nome do banco, usuário e senha do banco.
+7. Importar `database/schema.sql` pelo phpMyAdmin.
+8. Ajustar `backend/db.php` para usar as credenciais da hospedagem, preferencialmente por variáveis de ambiente ou por arquivo de configuração fora da pasta pública.
+9. Enviar a pasta do sistema para a hospedagem, mantendo `backend`, `database`, `storage` e arquivos necessários.
+10. Configurar o domínio/subdomínio para apontar para a pasta correta do projeto.
+11. Garantir permissão de escrita na pasta `storage/backups`.
+12. Acessar `backend/setup.php` apenas uma vez, se for necessário criar/verificar tabelas e usuário inicial.
+13. Entrar com o usuário desenvolvedor/admin e trocar a senha padrão imediatamente.
+14. Testar no computador: login, dashboard, animais, estoque, financeiro, usuários, suporte, auditoria e backup.
+15. Testar no celular usando o link público: login, menu gaveta, dashboard, tabelas e formulários principais.
+16. Gerar um backup pela tela `Backup` e baixar o arquivo para confirmar que a hospedagem permite escrita/download.
+17. Registrar dados reais ou massa de demonstração limpa para apresentar.
+18. Desativar ou proteger qualquer acesso técnico que não precise ficar aberto depois da configuração.
+19. Anotar o link final, usuário de demonstração e senha de demonstração para apresentação.
+
+Checklist de aprovação:
+- sistema abre em link público
+- login funciona no computador e no celular
+- menu mobile funciona em formato gaveta
+- gestor consegue cadastrar e consultar dados
+- funcionário continua vendo apenas os módulos liberados
+- backup gera arquivo corretamente
+- auditoria registra ações importantes
+- nenhum erro técnico aparece para o usuário comum
 
 ## Fase 27 - Polimento visual e responsividade
 Status: concluída
@@ -449,16 +580,12 @@ Fazer:
 - permitir ao desenvolvedor visualizar clientes no painel interno de suporte
 
 ## Ordem de prioridade a partir de agora
-1. Alertas inteligentes e dashboards por tipo de usuário
-2. Backup, auditoria e segurança base
-3. Polimento visual e responsividade
-4. Recuperação de senha
-5. Relatórios em PDF e exportação CSV/Excel
-6. Separação real por fazenda/cliente
-7. Sincronização offline/mobile
+1. Publicação online para teste em celular
+2. Recuperação de senha
+3. Relatórios em PDF e exportação CSV/Excel
+4. Separação real por fazenda/cliente
+5. Sincronização offline/mobile
 
 ## Próximo passo prático
-- abrir a fase 25
-- depois seguir para a fase 26
-- depois seguir para a fase 27
+- abrir a fase 34
 - depois seguir para a fase 28

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/auditoria.php';
 
 exigirGerenciarUsuarios();
 
@@ -242,7 +243,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
                     ':criado_por_id' => usuarioAtualId(),
                 ]);
 
-                salvarPermissoesUsuario($pdo, (int) $pdo->lastInsertId(), $permissoes);
+                $novoUsuarioId = (int) $pdo->lastInsertId();
+                salvarPermissoesUsuario($pdo, $novoUsuarioId, $permissoes);
+                registrarAuditoria($pdo, 'Criacao', 'Usuarios', $novoUsuarioId, 'Usuario cadastrado: ' . $nome . ' (' . $perfil . ')');
 
                 $sucesso = 'Usuario cadastrado com sucesso.';
                 $_POST = [];
@@ -250,7 +253,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
                 if ($e->getCode() === '23000') {
                     $erro = 'Ja existe um usuario cadastrado com esse email.';
                 } else {
-                    $erro = 'Erro ao cadastrar usuario: ' . $e->getMessage();
+                    error_log('Erro em usuarios.php ao cadastrar: ' . $e->getMessage());
+                    $erro = 'Nao foi possivel cadastrar o usuario agora.';
                 }
             }
         }
@@ -301,6 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
                         ':ativo' => $ativo,
                         ':id' => $usuarioId,
                     ]);
+                    registrarAuditoria($pdo, 'Edicao', 'Usuarios', $usuarioId, 'Usuario atualizado: ' . $nome . ' (' . $perfil . ')');
                     $sucesso = 'Usuario atualizado com sucesso.';
                 } catch (PDOException $e) {
                     $erro = $e->getCode() === '23000'
@@ -322,6 +327,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
                         ':senha_hash' => password_hash($novaSenha, PASSWORD_DEFAULT),
                         ':id' => $usuarioId,
                     ]);
+                    registrarAuditoria($pdo, 'Senha redefinida', 'Usuarios', $usuarioId, 'Senha redefinida para usuario: ' . $usuario['nome']);
                     $sucesso = 'Senha redefinida com sucesso.';
                 } catch (PDOException $e) {
                     $erro = 'Nao foi possivel redefinir a senha.';
@@ -336,10 +342,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
             try {
                 if ($acao === 'salvar_permissoes') {
                     salvarPermissoesUsuario($pdo, $usuarioId, permissoesPostadas());
+                    registrarAuditoria($pdo, 'Permissoes', 'Usuarios', $usuarioId, 'Permissoes atualizadas para usuario: ' . $usuario['nome']);
                     $sucesso = 'Permissoes atualizadas com sucesso.';
                 } elseif ($acao === 'excluir') {
                     $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = :id");
                     $stmt->execute([':id' => $usuarioId]);
+                    registrarAuditoria($pdo, 'Exclusao', 'Usuarios', $usuarioId, 'Usuario excluido: ' . $usuario['nome']);
                     $sucesso = 'Usuario excluido com sucesso.';
                 } else {
                     $novoStatus = $acao === 'ativar' ? 1 : 0;
@@ -348,6 +356,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
                         ':ativo' => $novoStatus,
                         ':id' => $usuarioId,
                     ]);
+                    registrarAuditoria($pdo, $novoStatus === 1 ? 'Ativacao' : 'Desativacao', 'Usuarios', $usuarioId, 'Status alterado para usuario: ' . $usuario['nome']);
                     $sucesso = $novoStatus === 1 ? 'Usuario ativado com sucesso.' : 'Usuario desativado com sucesso.';
                 }
             } catch (PDOException $e) {

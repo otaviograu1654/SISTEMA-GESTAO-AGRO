@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/auditoria.php';
 require_once __DIR__ . '/db.php';
 exigirPermissaoModulo('financeiro');
 
@@ -12,8 +13,9 @@ $data_vencimento = $_POST['data_vencimento'] ?? '';
 $natureza = trim($_POST['natureza'] ?? '');
 $prioridade = $_POST['prioridade'] ?? 'baixa';
 
-if (empty($descricao) || empty($data_vencimento) || $valor <= 0) {
-    die("Eroo: Preencha todos os campos obrigatórios corretamente");
+if (empty($descricao) || empty($data_vencimento) || !is_numeric($valor) || (float) $valor <= 0) {
+    header("Location: contas_a_pagar.php?erro=campos");
+    exit();
 }
 try {
 
@@ -31,12 +33,16 @@ $stmt->execute([
     ':prioridade'      => $prioridade  
 ]);
 
+registrarAuditoria($pdo, 'Criacao', 'Financeiro', (int) $pdo->lastInsertId(), 'Conta a pagar criada: ' . $descricao);
+
 header("Location: contas_a_pagar.php?sucesso=1");
 exit();
 } catch (PDOException $e) {
-    die("Erro ao salvar no banco de dados: " . $e->getMessage());
+    error_log('Erro em salvar_conta.php: ' . $e->getMessage());
+    header("Location: contas_a_pagar.php?erro=salvar");
+    exit();
 }    
 } else {
-    header("Location: contas_a_pagar");
+    header("Location: contas_a_pagar.php");
     exit();
 }

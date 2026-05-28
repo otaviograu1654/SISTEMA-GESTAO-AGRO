@@ -83,7 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
             if ($e->getCode() === '23000') {
                 $erro = 'Já existe uma raça cadastrada com esse nome.';
             } else {
-                $erro = 'Erro ao cadastrar raça: ' . $e->getMessage();
+                error_log('Erro em racas.php ao cadastrar: ' . $e->getMessage());
+                $erro = 'Nao foi possivel cadastrar a raca agora.';
             }
         }
     }

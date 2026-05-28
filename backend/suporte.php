@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/auditoria.php';
 
 function garantirTabelaSuporte(PDO $pdo): void
 {
@@ -108,6 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
                     ':respondido_por_id' => usuarioAtualId(),
                     ':id' => $chamadoId,
                 ]);
+                registrarAuditoria($pdo, 'Atualizacao', 'Suporte', $chamadoId, 'Chamado atualizado para status: ' . $status);
                 $sucesso = 'Chamado atualizado com sucesso.';
             } catch (PDOException $e) {
                 $erro = 'Nao foi possivel atualizar o chamado.';
@@ -146,10 +148,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
                     ':mensagem' => $mensagem,
                 ]);
 
+                registrarAuditoria($pdo, 'Criacao', 'Suporte', (int) $pdo->lastInsertId(), 'Chamado aberto: ' . $assunto);
                 $sucesso = 'Chamado enviado com sucesso.';
                 $_POST = [];
             } catch (PDOException $e) {
-                $erro = 'Erro ao registrar chamado: ' . $e->getMessage();
+                error_log('Erro em suporte.php ao registrar chamado: ' . $e->getMessage());
+                $erro = 'Nao foi possivel registrar o chamado agora.';
             }
         }
     }

@@ -146,10 +146,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && $erro === '') {
             $erro = 'Email ou senha invalidos.';
         } else {
             session_regenerate_id(true);
+            session_regenerate_id(true);
             $_SESSION['usuario_id'] = (int) $usuario['id'];
             $_SESSION['usuario_nome'] = $usuario['nome'];
             $_SESSION['usuario_email'] = $usuario['email'];
             $_SESSION['usuario_perfil'] = $usuario['perfil'];
+            $_SESSION['ultimo_acesso'] = time();
 
             header('Location: ' . $redirect);
             exit;

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/auditoria.php';
 
 $erroPagina = '';
 $sucessoPagina = '';
@@ -139,6 +140,7 @@ try {
                 ':data_lancamento' => $dataMovimento,
             ]);
 
+            registrarAuditoria($pdo, 'Criacao', 'Financeiro', (int) $pdo->lastInsertId(), 'Lancamento criado pelo fluxo de caixa: ' . $tipo . ' - ' . $categoria);
             $sucessoPagina = 'Lançamento registrado no financeiro e incluído no fluxo de caixa.';
         }
     }
@@ -160,7 +162,8 @@ try {
     ");
     $movimentacoes = $stmtMovimentacoes->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    $erroPagina = 'Não foi possível carregar o fluxo de caixa: ' . $e->getMessage();
+    error_log('Erro em fluxo_caixa.php: ' . $e->getMessage());
+    $erroPagina = 'Não foi possível carregar o fluxo de caixa agora.';
 }
 
 $totalEntradas = 0;

@@ -9,7 +9,8 @@ garantirBaixasAnimal($pdo);
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if ($id <= 0) {
-    die('Animal inválido.');
+    http_response_code(400);
+    die('Animal invalido.');
 }
 
 try {
@@ -43,7 +44,8 @@ try {
     $animal = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$animal) {
-        die('Animal não encontrado.');
+        http_response_code(404);
+        die('Animal nao encontrado.');
     }
 
     $stmtCrias = $pdo->prepare("
@@ -77,7 +79,9 @@ try {
     $stmtObito->execute([':id' => $id]);
     $obitoAnimal = $stmtObito->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die('Erro ao buscar animal: ' . $e->getMessage());
+    error_log('Erro em animal.php: ' . $e->getMessage());
+    http_response_code(500);
+    die('Nao foi possivel carregar este animal agora.');
 }
 
 $historicoAnimal = [];

@@ -133,7 +133,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
             $sucesso = 'Produção de leite registrada com sucesso.';
             $_POST = [];
         } catch (Throwable $e) {
-            $erro = 'Erro ao registrar produção: ' . $e->getMessage();
+            error_log('Erro em producao_leite.php ao registrar: ' . $e->getMessage());
+            $erro = 'Nao foi possivel registrar a producao agora.';
         }
     }
 }

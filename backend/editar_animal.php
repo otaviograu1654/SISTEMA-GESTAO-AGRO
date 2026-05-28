@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/animal_auditoria.php';
+require_once __DIR__ . '/includes/auditoria.php';
 require_once __DIR__ . '/includes/layout.php';
 
 garantirTabelaAuditoriaAnimal($pdo);
@@ -10,7 +11,8 @@ garantirBaixasAnimal($pdo);
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if ($id <= 0) {
-    die('Animal inválido.');
+    http_response_code(400);
+    die('Animal invalido.');
 }
 
 $erro = '';
@@ -94,10 +96,13 @@ try {
     $animal = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$animal) {
-        die('Animal não encontrado.');
+        http_response_code(404);
+        die('Animal nao encontrado.');
     }
 } catch (PDOException $e) {
-    die('Erro ao buscar animal: ' . $e->getMessage());
+    error_log('Erro em editar_animal.php ao buscar animal: ' . $e->getMessage());
+    http_response_code(500);
+    die('Nao foi possivel carregar este animal agora.');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -152,6 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'edicao',
                     'Dados do animal atualizados.'
                 );
+                registrarAuditoria($pdo, 'Edicao', 'Animais', $id, 'Animal atualizado: ' . $nome_apelido . ' / brinco ' . $brinco);
 
                 header('Location: editar_animal.php?id=' . $id . '&sucesso=1');
                 exit;
@@ -159,7 +165,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($e->getCode() === '23000') {
                     $erro = 'Já existe um animal cadastrado com esse brinco.';
                 } else {
-                    $erro = 'Erro ao atualizar animal: ' . $e->getMessage();
+                    error_log('Erro em editar_animal.php ao atualizar: ' . $e->getMessage());
+                    $erro = 'Nao foi possivel atualizar o animal agora.';
                 }
             }
         }
@@ -239,6 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':valor' => $valorBanco,
                     ':observacao' => $observacao_venda !== '' ? $observacao_venda : null,
                 ]);
+                $vendaId = (int) $pdo->lastInsertId();
 
                 $stmt = $pdo->prepare("UPDATE animais SET status = 'Vendido' WHERE id = :id");
                 $stmt->execute([':id' => $id]);
@@ -272,6 +280,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':valor' => $valorBanco,
                     ':data_lancamento' => $data_venda,
                 ]);
+                $financeiroId = (int) $pdo->lastInsertId();
 
                 registrarAlteracaoAnimal(
                     $pdo,
@@ -281,6 +290,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'venda',
                     'Animal vendido para ' . $comprador_nome . '.'
                 );
+                registrarAuditoria($pdo, 'Venda', 'Animais', $id, 'Animal vendido para ' . $comprador_nome . ' por R$ ' . number_format($valorBanco, 2, ',', '.'));
+                registrarAuditoria($pdo, 'Criacao', 'Financeiro', $financeiroId, 'Receita gerada pela venda do animal ID ' . $id . ' / venda ID ' . $vendaId);
 
                 $pdo->commit();
 
@@ -291,7 +302,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->rollBack();
                 }
 
-                $erro = 'Erro ao registrar venda: ' . $e->getMessage();
+                error_log('Erro em editar_animal.php ao registrar venda: ' . $e->getMessage());
+                $erro = 'Nao foi possivel registrar a venda agora.';
             }
         }
     }
@@ -335,6 +347,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':causa' => $causa_obito !== '' ? $causa_obito : null,
                     ':observacao' => $observacao_obito !== '' ? $observacao_obito : null,
                 ]);
+                $obitoId = (int) $pdo->lastInsertId();
 
                 $stmt = $pdo->prepare("UPDATE animais SET status = 'Óbito' WHERE id = :id");
                 $stmt->execute([':id' => $id]);
@@ -347,11 +360,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'obito',
                     'Óbito do animal registrado.'
                 );
+                registrarAuditoria($pdo, 'Obito', 'Animais', $id, 'Obito registrado para animal ID ' . $id . ' / registro ID ' . $obitoId);
 
                 header('Location: editar_animal.php?id=' . $id . '&sucesso=status');
                 exit;
             } catch (PDOException $e) {
-                $erro = 'Erro ao registrar óbito: ' . $e->getMessage();
+                error_log('Erro em editar_animal.php ao registrar obito: ' . $e->getMessage());
+                $erro = 'Nao foi possivel registrar o obito agora.';
             }
         }
     }
@@ -421,12 +436,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmtExcluir = $pdo->prepare("DELETE FROM animais WHERE id = :id");
                 $stmtExcluir->execute([':id' => $id]);
+                registrarAuditoria($pdo, 'Exclusao', 'Animais', $id, 'Animal excluido: ' . $animal['nome_apelido'] . ' / brinco ' . $animal['brinco']);
 
                 header('Location: animais.php?excluido=1');
                 exit;
             }
         } catch (PDOException $e) {
-            $erro = 'Erro ao excluir animal: ' . $e->getMessage();
+            error_log('Erro em editar_animal.php ao excluir: ' . $e->getMessage());
+            $erro = 'Nao foi possivel excluir o animal agora.';
         }
     }
 }
@@ -436,7 +453,8 @@ try {
     $stmt->execute([':id' => $id]);
     $animal = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die('Erro ao recarregar animal: ' . $e->getMessage());
+    error_log('Erro em editar_animal.php ao recarregar: ' . $e->getMessage());
+    die('Nao foi possivel recarregar este animal agora.');
 }
 
 try {

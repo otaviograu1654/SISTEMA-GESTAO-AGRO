@@ -4,6 +4,8 @@ $user = "root";
 $pass = "";
 $dbname = "sga_pecuaria";
 
+require_once __DIR__ . '/includes/auth.php';
+
 function executarArquivoSql(PDO $pdo, string $caminho): void
 {
     if (!file_exists($caminho)) {
@@ -342,6 +344,61 @@ function garantirEstruturaSuporte(PDO $pdo, string $banco): void
         $pdo->exec("ALTER TABLE suporte_chamados ADD COLUMN respondido_em DATETIME NULL AFTER respondido_por_id");
     }
 }
+
+function garantirEstruturaBackups(PDO $pdo): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS backup_registros (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            usuario_id INT NULL,
+            nome_arquivo VARCHAR(255) NOT NULL,
+            caminho_arquivo VARCHAR(255) NOT NULL,
+            tamanho_bytes BIGINT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        )
+    ");
+}
+
+function garantirEstruturaAuditoria(PDO $pdo): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS auditoria_sistema (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            usuario_id INT NULL,
+            usuario_nome VARCHAR(150) NULL,
+            usuario_perfil VARCHAR(50) NULL,
+            acao VARCHAR(80) NOT NULL,
+            entidade VARCHAR(80) NOT NULL,
+            entidade_id INT NULL,
+            descricao VARCHAR(255) NOT NULL,
+            ip VARCHAR(45) NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+        )
+    ");
+}
+
+function setupPodeRodar(PDO $pdo): bool
+{
+    try {
+        $stmtTabela = $pdo->query("SHOW TABLES LIKE 'usuarios'");
+
+        if (!$stmtTabela->fetch(PDO::FETCH_NUM)) {
+            return true;
+        }
+
+        $totalUsuarios = (int) $pdo->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();
+
+        if ($totalUsuarios === 0) {
+            return true;
+        }
+
+        return usuarioEhDesenvolvedor();
+    } catch (Throwable $e) {
+        return true;
+    }
+}
 try {
     $pdo = new PDO("mysql:host=$host;charset=utf8mb4", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -354,6 +411,13 @@ try {
     $pdoDb = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
     $pdoDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+    if (!setupPodeRodar($pdoDb)) {
+        http_response_code(403);
+        echo "<h1>Acesso negado</h1>";
+        echo "<p>O setup so pode ser executado pelo desenvolvedor depois que o sistema ja possui usuarios.</p>";
+        exit;
+    }
+
     garantirEstruturaParceiros($pdoDb, $dbname);
     garantirEstruturaFinanceiro($pdoDb, $dbname);
     garantirEstruturaRacas($pdoDb, $dbname);
@@ -363,6 +427,8 @@ try {
     garantirEstruturaProducaoLeite($pdoDb, $dbname);
     garantirEstruturaUsuarios($pdoDb, $dbname);
     garantirEstruturaSuporte($pdoDb, $dbname);
+    garantirEstruturaBackups($pdoDb);
+    garantirEstruturaAuditoria($pdoDb);
 
     if (file_exists($seedPath) && trim(file_get_contents($seedPath)) !== '') {
         executarArquivoSql($pdoDb, $seedPath);
@@ -399,7 +465,8 @@ try {
     echo "<p><a href='dashboard.php'>Ir para o sistema</a></p>";
 
 } catch (Throwable $e) {
+    error_log('Erro no setup.php: ' . $e->getMessage());
     http_response_code(500);
     echo "<h1>Erro no setup</h1>";
-    echo "<pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+    echo "<p>Nao foi possivel concluir o setup agora. Verifique o ambiente e tente novamente.</p>";
 }

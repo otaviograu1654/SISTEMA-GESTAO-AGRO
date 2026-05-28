@@ -347,6 +347,50 @@ body {
     background: #f6faf7;
 }
 
+.alert {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+.alert a {
+    margin-left: 10px;
+    color: inherit;
+    text-decoration: underline;
+}
+
+.alert.success {
+    background: #e7f6ec;
+    color: #1f7a3f;
+    border-color: #bfe6cc;
+}
+
+.alert.error {
+    background: #fdeaea;
+    color: #b42318;
+    border-color: #fac5bd;
+}
+
+.btn-tabela {
+    display: inline-block;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #1f7a3f;
+    color: white;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 800;
+    border: 0;
+    cursor: pointer;
+}
+
+.btn-tabela:hover {
+    background: #176332;
+}
+
 .app-footer {
     display: flex;
     justify-content: space-between;

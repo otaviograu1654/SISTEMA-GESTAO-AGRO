@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/auditoria.php';
 require_once 'db.php';
 exigirPermissaoModulo('financeiro');
 header('Content-Type: application/json; charset=utf-8');
@@ -174,9 +175,12 @@ try {
             ':data_lancamento' => $data_lancamento,
         ]);
 
+        $novoLancamentoId = (int) $pdo->lastInsertId();
+        registrarAuditoria($pdo, 'Criacao', 'Financeiro', $novoLancamentoId, 'Lancamento financeiro criado: ' . $tipo . ' - ' . $origem . ' - R$ ' . number_format((float) $valor, 2, ',', '.'));
+
         responder([
             'mensagem' => 'Lançamento financeiro cadastrado com sucesso.',
-            'id' => $pdo->lastInsertId()
+            'id' => $novoLancamentoId
         ], 201);
     }
 
@@ -185,13 +189,13 @@ try {
     ], 405);
 
 } catch (PDOException $e) {
+    error_log('Erro em financeiro.php: ' . $e->getMessage());
     responder([
-        'erro' => 'Erro no banco de dados.',
-        'detalhe' => $e->getMessage()
+        'erro' => 'Nao foi possivel concluir a operacao financeira agora.'
     ], 500);
 } catch (Throwable $e) {
+    error_log('Erro inesperado em financeiro.php: ' . $e->getMessage());
     responder([
-        'erro' => 'Erro interno do servidor.',
-        'detalhe' => $e->getMessage()
+        'erro' => 'Erro interno do servidor.'
     ], 500);
 }

@@ -157,15 +157,11 @@ if (requisicaoJson()) {
             ], 409);
         }
 
-        responder([
-            'erro' => 'Erro no banco de dados.',
-            'detalhe' => $e->getMessage()
-        ], 500);
+        error_log('Erro em animais.php: ' . $e->getMessage());
+        responder(['erro' => 'Nao foi possivel concluir a operacao com animais agora.'], 500);
     } catch (Throwable $e) {
-        responder([
-            'erro' => 'Erro interno do servidor.',
-            'detalhe' => $e->getMessage()
-        ], 500);
+        error_log('Erro inesperado em animais.php: ' . $e->getMessage());
+        responder(['erro' => 'Erro interno do servidor.'], 500);
     }
 }
 

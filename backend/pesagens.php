@@ -139,15 +139,11 @@ if (requisicaoJson()) {
             'erro' => 'Método não permitido.'
         ], 405);
     } catch (PDOException $e) {
-        responder([
-            'erro' => 'Erro no banco de dados.',
-            'detalhe' => $e->getMessage()
-        ], 500);
+        error_log('Erro em pesagens.php: ' . $e->getMessage());
+        responder(['erro' => 'Nao foi possivel concluir a operacao de pesagem agora.'], 500);
     } catch (Throwable $e) {
-        responder([
-            'erro' => 'Erro interno do servidor.',
-            'detalhe' => $e->getMessage()
-        ], 500);
+        error_log('Erro inesperado em pesagens.php: ' . $e->getMessage());
+        responder(['erro' => 'Erro interno do servidor.'], 500);
     }
 }
 

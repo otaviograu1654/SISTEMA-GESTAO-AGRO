@@ -200,3 +200,27 @@ CREATE TABLE IF NOT EXISTS suporte_chamados (
     status VARCHAR(50) NOT NULL DEFAULT 'Aberto',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS backup_registros (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NULL,
+    nome_arquivo VARCHAR(255) NOT NULL,
+    caminho_arquivo VARCHAR(255) NOT NULL,
+    tamanho_bytes BIGINT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE IF NOT EXISTS auditoria_sistema (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NULL,
+    usuario_nome VARCHAR(150) NULL,
+    usuario_perfil VARCHAR(50) NULL,
+    acao VARCHAR(80) NOT NULL,
+    entidade VARCHAR(80) NOT NULL,
+    entidade_id INT NULL,
+    descricao VARCHAR(255) NOT NULL,
+    ip VARCHAR(45) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);

@@ -45,6 +45,12 @@ layoutInicio('Contas a pagar');
     </div>
 <?php endif; ?>
 
+<?php if (($_GET['erro'] ?? '') !== ''): ?>
+    <div class="mensagem erro mensagem-bloco">
+        Não foi possível concluir a operação. Confira os dados e tente novamente.
+    </div>
+<?php endif; ?>
+
 <div class="grid-panels">
     <section class="panel">
         <h2>Nova conta</h2>

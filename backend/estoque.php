@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/includes/auditoria.php';
 
 function garantirTabelaEstoque(PDO $pdo): void
 {
@@ -149,13 +150,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '' && ($_POST['acao'] ?? 
                 ':ativo' => $ativo,
             ]);
 
+            registrarAuditoria($pdo, 'Criacao', 'Estoque', (int) $pdo->lastInsertId(), 'Produto cadastrado: ' . $nome . ' (' . $codigo . ')');
             $sucesso = 'Produto cadastrado no estoque com sucesso.';
             $_POST = [];
         } catch (PDOException $e) {
             if ($e->getCode() === '23000') {
                 $erro = 'Já existe um produto cadastrado com esse código.';
             } else {
-                $erro = 'Erro ao cadastrar produto: ' . $e->getMessage();
+                error_log('Erro em estoque.php ao cadastrar produto: ' . $e->getMessage());
+                $erro = 'Nao foi possivel cadastrar o produto agora.';
             }
         }
     }
@@ -224,6 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '' && ($_POST['acao'] ?? 
                 ':data_movimento' => $dataMovimento,
                 ':observacao' => $observacaoMovimento !== '' ? $observacaoMovimento : null,
             ]);
+            $movimentoId = (int) $pdo->lastInsertId();
 
             $stmtAtualizar = $pdo->prepare("
                 UPDATE estoque_produtos
@@ -235,6 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '' && ($_POST['acao'] ?? 
                 ':id' => $produtoId,
             ]);
 
+            registrarAuditoria($pdo, 'Movimentacao', 'Estoque', $produtoId, $tipoMovimento . ' de ' . $quantidadeBanco . ' no produto ID ' . $produtoId);
             $pdo->commit();
             $sucesso = 'Movimentação registrada com sucesso.';
             $_POST = [];
@@ -243,7 +248,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '' && ($_POST['acao'] ?? 
                 $pdo->rollBack();
             }
 
-            $erro = 'Erro ao movimentar estoque: ' . $e->getMessage();
+            error_log('Erro em estoque.php ao movimentar: ' . $e->getMessage());
+            $erro = 'Nao foi possivel movimentar o estoque agora.';
         }
     }
 }

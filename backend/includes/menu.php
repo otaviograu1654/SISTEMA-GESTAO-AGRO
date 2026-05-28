@@ -145,6 +145,18 @@ $podeFinanceiro = usuarioTemPermissaoModulo('financeiro');
 
         <div class="menu-title">Conta</div>
 
+        <?php if (usuarioEhDesenvolvedor() || usuarioEhFazendeiro()): ?>
+            <a href="auditoria.php" class="<?= $paginaAtual === 'auditoria.php' ? 'active' : '' ?>">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Auditoria</span>
+            </a>
+
+            <a href="backup.php" class="<?= $paginaAtual === 'backup.php' ? 'active' : '' ?>">
+                <i class="fa-solid fa-database"></i>
+                <span>Backup</span>
+            </a>
+        <?php endif; ?>
+
         <a href="logout.php" class="menu-logout">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span>Sair da conta</span>

@@ -105,7 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
             if ($e->getCode() === '23000') {
                 $erro = 'Já existe um lote cadastrado com esse nome.';
             } else {
-                $erro = 'Erro ao cadastrar lote: ' . $e->getMessage();
+                error_log('Erro em lotes.php ao cadastrar: ' . $e->getMessage());
+                $erro = 'Nao foi possivel cadastrar o lote agora.';
             }
         }
     }

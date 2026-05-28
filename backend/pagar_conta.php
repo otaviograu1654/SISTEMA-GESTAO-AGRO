@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/auditoria.php';
 require_once __DIR__ . '/db.php';
 exigirPermissaoModulo('financeiro');
 
@@ -74,6 +75,7 @@ try {
         ':data_lancamento' => date('Y-m-d'),
     ]);
 
+    registrarAuditoria($pdo, 'Pagamento', 'Financeiro', $id, 'Conta paga: ' . $conta['descricao'] . ' - R$ ' . number_format((float) $conta['valor'], 2, ',', '.'));
     $pdo->commit();
 
     header('Location: contas_a_pagar.php?paga=1');
@@ -83,5 +85,7 @@ try {
         $pdo->rollBack();
     }
 
-    die('Erro ao pagar conta: ' . $e->getMessage());
+    error_log('Erro em pagar_conta.php: ' . $e->getMessage());
+    header('Location: contas_a_pagar.php?erro=pagar');
+    exit;
 }

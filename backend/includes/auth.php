@@ -1,7 +1,28 @@
 <?php
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
     session_start();
+}
+
+function encerrarSessaoPorInatividade(): void
+{
+    $limiteSegundos = 8 * 60 * 60;
+    $ultimoAcesso = (int) ($_SESSION['ultimo_acesso'] ?? time());
+
+    if (time() - $ultimoAcesso > $limiteSegundos) {
+        $_SESSION = [];
+        session_destroy();
+        return;
+    }
+
+    $_SESSION['ultimo_acesso'] = time();
 }
 
 function usuarioLogado(): bool
@@ -11,6 +32,8 @@ function usuarioLogado(): bool
 
 function exigirLogin(): void
 {
+    encerrarSessaoPorInatividade();
+
     if (usuarioLogado()) {
         return;
     }
@@ -144,7 +167,7 @@ function exigirPermissaoModulo(string $modulo): void
     }
 
     http_response_code(403);
-    echo 'Acesso negado para este modulo.';
+    echo 'Acesso negado. Seu usuario nao tem permissao para acessar este modulo.';
     exit;
 }
 
@@ -173,6 +196,6 @@ function exigirGerenciarUsuarios(): void
     }
 
     http_response_code(403);
-    echo 'Acesso negado.';
+    echo 'Acesso negado. Seu usuario nao tem permissao para executar esta acao.';
     exit;
 }

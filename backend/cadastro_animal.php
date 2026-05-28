@@ -52,7 +52,8 @@ try {
     ");
     $machos = $stmtMachos->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die('Erro ao carregar listas do cadastro: ' . $e->getMessage());
+    error_log('Erro em cadastro_animal.php ao carregar listas: ' . $e->getMessage());
+    die('Nao foi possivel carregar as listas do cadastro agora.');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -139,7 +140,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($e->getCode() === '23000') {
                 $erro = 'Já existe um animal cadastrado com esse brinco.';
             } else {
-                $erro = 'Erro ao cadastrar animal: ' . $e->getMessage();
+                error_log('Erro em cadastro_animal.php ao cadastrar: ' . $e->getMessage());
+                $erro = 'Nao foi possivel cadastrar o animal agora.';
             }
         }
     }

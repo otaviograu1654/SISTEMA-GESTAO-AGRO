@@ -141,10 +141,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erro === '') {
             $sucesso = 'Parceiro cadastrado com sucesso.';
             $_POST = [];
         } catch (PDOException $e) {
-            $erro = 'Erro ao cadastrar parceiro: ' . $e->getMessage();
+            error_log('Erro em parceiros.php ao cadastrar: ' . $e->getMessage());
+            $erro = 'Nao foi possivel cadastrar o parceiro agora.';
         }
     }
-    }
+}
 }
 
 if ($erro === '') {
