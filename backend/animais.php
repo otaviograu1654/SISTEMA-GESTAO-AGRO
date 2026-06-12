@@ -174,10 +174,12 @@ $racasFiltro = [];
 $lotesFiltro = [];
 $sexosFiltro = [];
 $resumo = [
-    'total' => 0,
+    'ativos' => 0,
     'machos' => 0,
     'femeas' => 0,
     'prenhas' => 0,
+    'vendidos' => 0,
+    'obitos' => 0,
 ];
 
 try {
@@ -186,10 +188,18 @@ try {
 
     foreach ($animais as $animal) {
         $sexo = mb_strtolower((string) ($animal['sexo'] ?? ''), 'UTF-8');
+        $status = trim((string) ($animal['status'] ?? 'Ativo'));
         $racaFiltro = trim((string) ($animal['raca'] ?? ''));
         $loteFiltro = trim((string) ($animal['lote'] ?? ''));
         $sexoFiltro = trim((string) ($animal['sexo'] ?? ''));
-        $resumo['total']++;
+
+        if ($status === 'Vendido') {
+            $resumo['vendidos']++;
+        } elseif ($status === 'Óbito') {
+            $resumo['obitos']++;
+        } else {
+            $resumo['ativos']++;
+        }
 
         if ($racaFiltro !== '') {
             $racasFiltro[$racaFiltro] = $racaFiltro;
@@ -203,15 +213,15 @@ try {
             $sexosFiltro[$sexoFiltro] = $sexoFiltro;
         }
 
-        if ($sexo === 'macho') {
+        if ($status === 'Ativo' && $sexo === 'macho') {
             $resumo['machos']++;
         }
 
-        if ($sexo === 'fêmea' || $sexo === 'femea') {
+        if ($status === 'Ativo' && ($sexo === 'fêmea' || $sexo === 'femea')) {
             $resumo['femeas']++;
         }
 
-        if ((int) ($animal['prenha'] ?? 0) === 1) {
+        if ($status === 'Ativo' && (int) ($animal['prenha'] ?? 0) === 1) {
             $resumo['prenhas']++;
         }
     }
@@ -250,20 +260,28 @@ layoutInicio('Animais');
 
 <div class="cards">
     <div class="card">
-        <h3>Total de animais</h3>
-        <div class="value"><?= $resumo['total'] ?></div>
+        <h3>Rebanho ativo</h3>
+        <div class="value"><?= $resumo['ativos'] ?></div>
     </div>
     <div class="card">
-        <h3>Machos</h3>
+        <h3>Machos ativos</h3>
         <div class="value"><?= $resumo['machos'] ?></div>
     </div>
     <div class="card">
-        <h3>Fêmeas</h3>
+        <h3>Fêmeas ativas</h3>
         <div class="value"><?= $resumo['femeas'] ?></div>
     </div>
     <div class="card">
-        <h3>Prenhas</h3>
+        <h3>Prenhas ativas</h3>
         <div class="value"><?= $resumo['prenhas'] ?></div>
+    </div>
+    <div class="card">
+        <h3>Vendidos</h3>
+        <div class="value"><?= $resumo['vendidos'] ?></div>
+    </div>
+    <div class="card">
+        <h3>Óbitos</h3>
+        <div class="value"><?= $resumo['obitos'] ?></div>
     </div>
 </div>
 
@@ -317,7 +335,7 @@ layoutInicio('Animais');
             <label for="filtroStatusAnimais">Filtrar por status</label>
             <select id="filtroStatusAnimais">
                 <option value="">Todos</option>
-                <option value="ativo">Ativo</option>
+                <option value="ativo" selected>Ativo</option>
                 <option value="vendido">Vendido</option>
                 <option value="óbito">Óbito</option>
             </select>
@@ -493,6 +511,8 @@ layoutInicio('Animais');
     if (filtroStatusAnimais) {
         filtroStatusAnimais.addEventListener('change', filtrarAnimais);
     }
+
+    filtrarAnimais();
 </script>
 
 <?php layoutFim(); ?>

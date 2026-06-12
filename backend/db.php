@@ -10,7 +10,7 @@ try {
     // Migrar para o mysqli?
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
 
-    // Configura o PDO para mostrar erros como exceções, facilitando depuração.
+    // Configura o PDO para mostrar erros que pode dar 
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     error_log("Erro na conexão com o banco: " . $e->getMessage());

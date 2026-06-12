@@ -5,8 +5,8 @@ COLLATE utf8mb4_unicode_ci;
 USE sga_pecuaria;
 
 CREATE TABLE IF NOT EXISTS animais (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    brinco VARCHAR(50) NOT NULL UNIQUE,
+    id INT AUTO_INCREMENT PRIMARY KEY, /*identificador do animal cresce sozinho*/
+    brinco VARCHAR(50) NOT NULL UNIQUE, 
     nome_apelido VARCHAR(100) NOT NULL,
     raca VARCHAR(100) NOT NULL,
     sexo VARCHAR(20) NOT NULL,
